@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>lafe.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+    <Title>Teams2Mqtt</Title>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +29,14 @@
 
   <ItemGroup>
     <Folder Include="Data\" />
+    <Folder Include="Model\Teams\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

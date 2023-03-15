@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using lafe.Teams2Mqtt.Model;
+using lafe.Teams2Mqtt.Services;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -7,14 +9,17 @@ namespace lafe.Teams2Mqtt;
 public class Worker : BackgroundService
 {
     protected ILogger<Worker> Logger { get; }
+    public TeamsCommunication TeamsCommunication { get; }
     public MqttConfiguration MqttConfiguration { get; }
     public AppConfiguration AppConfiguration { get; }
 
     public Worker(ILogger<Worker> logger,
         IOptions<AppConfiguration> appConfiguration,
-        IOptions<MqttConfiguration> mqttConfiguration)
+        IOptions<MqttConfiguration> mqttConfiguration,
+        TeamsCommunication teamsCommunication)
     {
         Logger = logger;
+        TeamsCommunication = teamsCommunication;
         MqttConfiguration = mqttConfiguration.Value;
         AppConfiguration = appConfiguration.Value;
         //MqttService = mqttService;
@@ -23,6 +28,9 @@ public class Worker : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         Logger.LogInformation(LogNumbers.Worker.Initializing, "Initializing monitoring services");
+
+        await TeamsCommunication.ConnectAsync(stoppingToken);
+
         // MqttService is the last one start, because it needs the values from the initialized SmartMonitoring service
         // await MqttService.StartAsync();
         Logger.LogInformation(LogNumbers.Worker.Initialized, "Monitoring services initialized");
@@ -57,6 +65,9 @@ public class Worker : BackgroundService
         {
             Logger.LogInformation(LogNumbers.Worker.StopAsync, $"Stop signal received. Stopping all services and removing any registrations.");
             // await MqttService.StopAsync();
+
+            await TeamsCommunication.DisconnectAsync();
+            TeamsCommunication.Dispose();
 
             await base.StopAsync(cancellationToken);
             Logger.LogInformation(LogNumbers.Worker.StopAsyncSuccess, $"Stopped all services.");

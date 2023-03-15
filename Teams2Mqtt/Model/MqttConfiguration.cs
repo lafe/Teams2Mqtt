@@ -1,4 +1,4 @@
-namespace lafe.Teams2Mqtt;
+namespace lafe.Teams2Mqtt.Model;
 
 public class MqttConfiguration
 {

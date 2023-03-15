@@ -396,4 +396,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-/Teams2Mqtt/appsettings.Development.json
+/Teams2Mqtt/appsettings.json

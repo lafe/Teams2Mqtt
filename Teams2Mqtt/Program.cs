@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using lafe.Teams2Mqtt.Model;
+using lafe.Teams2Mqtt.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -51,9 +53,6 @@ namespace lafe.Teams2Mqtt
         {
             services.AddSingleton(configuration);
 
-            // Parse fan configuration
-            var fanConfigurations = configuration.GetSection("fans");
-
             var appConfig = configuration.GetSection("configuration");
             services.Configure<AppConfiguration>(appConfig);
             var mqttConfig = configuration.GetSection("mqtt");
@@ -62,6 +61,7 @@ namespace lafe.Teams2Mqtt
 
         private static void RegisterServices(IServiceCollection services)
         {
+            services.AddTransient<TeamsCommunication>();
         }
 
         private static void AddHostedServices(IServiceCollection services)
