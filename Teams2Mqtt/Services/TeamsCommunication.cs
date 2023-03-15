@@ -24,6 +24,12 @@ public class TeamsCommunication : IDisposable
 
     protected Task? ListenerBackgroundTask { get; set; }
 
+    public delegate void MeetingUpdateMessageReceivedHandler(object sender, MeetingUpdateMessage e);
+    /// <summary>
+    /// Is executed when a new meeting update message has been received from Teams
+    /// </summary>
+    public event MeetingUpdateMessageReceivedHandler? MeetingUpdateMessageReceived;
+
     public TeamsCommunication(ILogger<TeamsCommunication> logger, IOptions<AppConfiguration> configuration)
     {
         Logger = logger;
@@ -39,7 +45,7 @@ public class TeamsCommunication : IDisposable
         var appName = assemblyName?.Name ?? string.Empty;
         var appVersion = assemblyName?.Version?.ToString() ?? string.Empty;
 
-        return $"ws://{Configuration.TeamsWebSocketAddress}:8124?token={Configuration.TeamsApiKey}&protocol-version=1.0.0&manufacturer=lafe&device={deviceName}&app={appName}&app-version={appVersion}";
+        return $"ws://{Configuration.TeamsWebSocketAddress}:{Configuration.TeamsWebSocketPort}?token={Configuration.TeamsApiKey}&protocol-version=1.0.0&manufacturer=lafe&device={deviceName}&app={appName}&app-version={appVersion}";
     }
 
     public async Task ConnectAsync(CancellationToken cancellationToken = default)
@@ -72,44 +78,58 @@ public class TeamsCommunication : IDisposable
         var serializedMessage = string.Empty;
         while (WebSocket.State == WebSocketState.Open)
         {
-            // Waits until the next message from the Teams client arrives
-            var result = await WebSocket.ReceiveAsync(buffer, CancellationToken.None);
-            if (result.MessageType == WebSocketMessageType.Close)
+            try
             {
-                await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
-            }
-            else
-            {
-                var messageChunk = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                Logger.LogTrace(LogNumbers.TeamsCommunication.WebSocketListenerRetrievedMessage, $"Retrieved message: {serializedMessage}");
-                if (result.EndOfMessage)
+                Logger.LogTrace(LogNumbers.TeamsCommunication.WebSocketListenerWaitingUntilNextMessage, $"Waiting until the next message or chunk of a message arrives");
+                // Waits until the next message from the Teams client arrives
+                var result = await WebSocket.ReceiveAsync(buffer, CancellationToken.None);
+                Logger.LogTrace(LogNumbers.TeamsCommunication.WebSocketListenerMessageReceived, $"Retrieved message or chunk of a message");
+                if (result.MessageType == WebSocketMessageType.Close)
                 {
-                    serializedMessage += messageChunk;
-                    var meetingUpdate = JsonSerializer.Deserialize<MeetingUpdateMessage>(serializedMessage);
-                    var meetingState = meetingUpdate?.MeetingUpdate?.MeetingState;
-                    if (!string.IsNullOrWhiteSpace(meetingUpdate?.ErrorMessage))
-                    {
-                        Logger.LogError(LogNumbers.TeamsCommunication.WebSocketListenerMeetingUpdateError, $"An error was received by the Web Socket connection from Teams: {meetingUpdate.ErrorMessage}");
-                    }
-                    else if (meetingState != null)
-                    {
-                        Logger.LogInformation(LogNumbers.TeamsCommunication.WebSocketListenerMeetingUpdate, $"Received meeting update:\r\nIsInMeeting: {meetingState.IsInMeeting}\r\nIsCameraOn: {meetingState.IsCameraOn}\r\nIsMuted: {meetingState.IsMuted}\r\nIsHandRaised: {meetingState.IsHandRaised}");
-                    }
-                    else
-                    {
-                        Logger.LogError(LogNumbers.TeamsCommunication.WebSocketListenerMeetingStateNullError, $"The received meeting state was empty and could not be processed: {serializedMessage}");
-                    }
-
-                    serializedMessage = string.Empty;
+                    Logger.LogInformation(LogNumbers.TeamsCommunication.WebSocketListenerConnectionClosed, $"Teams has closed the connection. Closing the web socket.");
+                    await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
                 }
                 else
                 {
-                    serializedMessage += messageChunk;
+                    Logger.LogTrace(LogNumbers.TeamsCommunication.WebSocketListenerReceivedTeamsMessage, $"Received message of type {result.MessageType}");
+                    var messageChunk = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                    Logger.LogTrace(LogNumbers.TeamsCommunication.WebSocketListenerRetrievedMessage, $"Retrieved new message chunk: {messageChunk}");
+                    if (result.EndOfMessage)
+                    {
+                        serializedMessage += messageChunk;
+                        Logger.LogTrace(LogNumbers.TeamsCommunication.WebSocketListenerMessageEnd, $"Complete message has been received: {serializedMessage}");
+
+                        var meetingUpdate = JsonSerializer.Deserialize<MeetingUpdateMessage>(serializedMessage);
+                        Logger.LogTrace(LogNumbers.TeamsCommunication.WebSocketListenerDeserializedMessage, $"Deserialized the message");
+                        if (!string.IsNullOrWhiteSpace(meetingUpdate?.ErrorMessage))
+                        {
+                            Logger.LogError(LogNumbers.TeamsCommunication.WebSocketListenerMeetingUpdateError, $"An error was received by the Web Socket connection from Teams: {meetingUpdate.ErrorMessage}");
+                        }
+                        else if (meetingUpdate != null)
+                        {
+                            Logger.LogTrace(LogNumbers.TeamsCommunication.WebSocketListenerMeetingUpdate, $"Message contains data and is not an error. Raising new Meeting Update received event.");
+                            MeetingUpdateMessageReceived?.Invoke(this, meetingUpdate);
+                        }
+                        else
+                        {
+                            Logger.LogError(LogNumbers.TeamsCommunication.WebSocketListenerMeetingNullError, $"The received meeting update was null");
+                        }
+
+                        serializedMessage = string.Empty;
+                    }
+                    else
+                    {
+                        serializedMessage += messageChunk;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(LogNumbers.TeamsCommunication.WebSocketListenerWebSocketError, $"An error occurred while processing web socket messages: {ex}");
             }
         }
     }
-
+    
     public async Task DisconnectAsync()
     {
         await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Shutting down application", CancellationToken.None);
