@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33414.496
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Teams2Mqtt", "Teams2Mqtt\Teams2Mqtt.csproj", "{2A8B30D9-64ED-41B6-8C78-B810A6D5CA13}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2A8B30D9-64ED-41B6-8C78-B810A6D5CA13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A8B30D9-64ED-41B6-8C78-B810A6D5CA13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A8B30D9-64ED-41B6-8C78-B810A6D5CA13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A8B30D9-64ED-41B6-8C78-B810A6D5CA13}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A8531A14-17F2-4508-9539-0288A7A6DBAB}
+	EndGlobalSection
+EndGlobal
