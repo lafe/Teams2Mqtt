@@ -9,6 +9,12 @@ using lafe.Teams2Mqtt.Model.Teams;
 
 namespace lafe.Teams2Mqtt.Services;
 
+/// <summary>
+/// Contains the communication with the Teams client
+/// </summary>
+/// <remarks>
+/// Inspired by the sample from Philipp Bauknecht: https://github.com/GrillPhil/TeamsClientApiSample/tree/main
+/// </remarks>
 public class TeamsCommunication : IDisposable
 {
     protected ILogger<TeamsCommunication> Logger { get; }
@@ -62,8 +68,8 @@ public class TeamsCommunication : IDisposable
     /// </summary>
     private async Task WebSocketListener()
     {
-        // assuming this is enough for messages to fit into a single frame
-        var buffer = new byte[5 * 1024];
+        var buffer = new byte[1024];
+        var serializedMessage = string.Empty;
         while (WebSocket.State == WebSocketState.Open)
         {
             // Waits until the next message from the Teams client arrives
@@ -74,10 +80,11 @@ public class TeamsCommunication : IDisposable
             }
             else
             {
-                var serializedMessage = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                var messageChunk = Encoding.UTF8.GetString(buffer, 0, result.Count);
                 Logger.LogTrace(LogNumbers.TeamsCommunication.WebSocketListenerRetrievedMessage, $"Retrieved message: {serializedMessage}");
                 if (result.EndOfMessage)
                 {
+                    serializedMessage += messageChunk;
                     var meetingUpdate = JsonSerializer.Deserialize<MeetingUpdateMessage>(serializedMessage);
                     var meetingState = meetingUpdate?.MeetingUpdate?.MeetingState;
                     if (!string.IsNullOrWhiteSpace(meetingUpdate?.ErrorMessage))
@@ -87,12 +94,17 @@ public class TeamsCommunication : IDisposable
                     else if (meetingState != null)
                     {
                         Logger.LogInformation(LogNumbers.TeamsCommunication.WebSocketListenerMeetingUpdate, $"Received meeting update:\r\nIsInMeeting: {meetingState.IsInMeeting}\r\nIsCameraOn: {meetingState.IsCameraOn}\r\nIsMuted: {meetingState.IsMuted}\r\nIsHandRaised: {meetingState.IsHandRaised}");
-                        
                     }
                     else
                     {
                         Logger.LogError(LogNumbers.TeamsCommunication.WebSocketListenerMeetingStateNullError, $"The received meeting state was empty and could not be processed: {serializedMessage}");
                     }
+
+                    serializedMessage = string.Empty;
+                }
+                else
+                {
+                    serializedMessage += messageChunk;
                 }
             }
         }
