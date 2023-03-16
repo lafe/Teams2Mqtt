@@ -87,7 +87,10 @@ public class TeamsCommunication : IDisposable
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
                     Logger.LogInformation(LogNumbers.TeamsCommunication.WebSocketListenerConnectionClosed, $"Teams has closed the connection. Closing the web socket.");
-                    await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                    if (WebSocket.State == WebSocketState.Open)
+                    {
+                        await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                    }
                 }
                 else
                 {
@@ -129,7 +132,7 @@ public class TeamsCommunication : IDisposable
             }
         }
     }
-    
+
     public async Task DisconnectAsync()
     {
         await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Shutting down application", CancellationToken.None);

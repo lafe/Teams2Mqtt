@@ -35,9 +35,4 @@ public class MqttConfiguration
     /// The suggested area for the created device in Home Assistant.
     /// </summary>
     public string? DeviceSuggestedArea { get; set; }
-    /// <summary>
-    /// The display name of the presence sensor. The default value is \"Presence\". This is visible in the name of the entity in Home Assistant.
-    /// </summary>
-    public string presenceSensorName { get; set; } = "Presence";
-
 }

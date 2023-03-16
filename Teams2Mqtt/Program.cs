@@ -57,11 +57,16 @@ namespace lafe.Teams2Mqtt
             services.Configure<AppConfiguration>(appConfig);
             var mqttConfig = configuration.GetSection("mqtt");
             services.Configure<MqttConfiguration>(mqttConfig);
+            var sensorLocalizations = configuration.GetSection("sensorLocalizations");
+            services.Configure<List<SensorLocalizationConfiguration>>(sensorLocalizations);
         }
 
         private static void RegisterServices(IServiceCollection services)
         {
-            services.AddTransient<TeamsCommunication>();
+            services.AddSingleton<TeamsCommunication>();
+            services.AddSingleton<MqttService>();
+
+            services.AddTransient<MqttLoggerFactory>();
         }
 
         private static void AddHostedServices(IServiceCollection services)

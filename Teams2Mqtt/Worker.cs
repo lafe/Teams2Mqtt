@@ -10,20 +10,22 @@ namespace lafe.Teams2Mqtt;
 public class Worker : BackgroundService
 {
     protected ILogger<Worker> Logger { get; }
-    public TeamsCommunication TeamsCommunication { get; }
-    public MqttConfiguration MqttConfiguration { get; }
-    public AppConfiguration AppConfiguration { get; }
+    protected TeamsCommunication TeamsCommunication { get; }
+    protected MqttConfiguration MqttConfiguration { get; }
+    protected AppConfiguration AppConfiguration { get; }
+    protected MqttService MqttService { get; }
 
     public Worker(ILogger<Worker> logger,
         IOptions<AppConfiguration> appConfiguration,
         IOptions<MqttConfiguration> mqttConfiguration,
-        TeamsCommunication teamsCommunication)
+        TeamsCommunication teamsCommunication,
+        MqttService mqttService)
     {
         Logger = logger;
         TeamsCommunication = teamsCommunication;
         MqttConfiguration = mqttConfiguration.Value;
         AppConfiguration = appConfiguration.Value;
-        //MqttService = mqttService;
+        MqttService = mqttService;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -32,9 +34,9 @@ public class Worker : BackgroundService
 
         TeamsCommunication.MeetingUpdateMessageReceived += MeetingUpdateMessageReceived;
         await TeamsCommunication.ConnectAsync(stoppingToken);
+        await MqttService.StartAsync();
+        await MqttService.PublishDiscoveryMessagesAsync<MeetingState>();
 
-        // MqttService is the last one start, because it needs the values from the initialized SmartMonitoring service
-        // await MqttService.StartAsync();
         Logger.LogInformation(LogNumbers.Worker.Initialized, "Monitoring services initialized");
     }
 
@@ -54,12 +56,17 @@ public class Worker : BackgroundService
         try
         {
             Logger.LogInformation(LogNumbers.Worker.StopAsync, $"Stop signal received. Stopping all services and removing any registrations.");
-            // await MqttService.StopAsync();
+            await MqttService.RemoveDiscoveryMessageAsync<MeetingState>();
+            await MqttService.StopAsync();
+            Logger.LogTrace(LogNumbers.Worker.StopAsyncStoppedMqttService, $"Stopped MQTT service");
 
             TeamsCommunication.MeetingUpdateMessageReceived -= MeetingUpdateMessageReceived;
+            Logger.LogTrace(LogNumbers.Worker.StopAsyncRemovedEventHandler, $"Unregistered event receiver for Teams messages");
 
             await TeamsCommunication.DisconnectAsync();
+            Logger.LogTrace(LogNumbers.Worker.StopAsyncDisconnectedTeams, $"Disconnected Teams connection");
             TeamsCommunication.Dispose();
+            Logger.LogTrace(LogNumbers.Worker.StopAsyncDisposedTeams, $"Disposed Team connection");
 
             await base.StopAsync(cancellationToken);
             Logger.LogInformation(LogNumbers.Worker.StopAsyncSuccess, $"Stopped all services.");
