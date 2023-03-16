@@ -22,6 +22,8 @@ public class LogNumbers
         public const int StopAsyncRemovedEventHandler = BaseId + 9; //1109
         public const int StopAsyncDisconnectedTeams = BaseId + 10; //1110
         public const int StopAsyncDisposedTeams = BaseId + 11; //1111
+        public const int MeetingUpdateMessageReceivedMeetingStateEmpty = BaseId + 12; //1112
+        public const int MeetingUpdateMessageReceivedMeetingStateChangeTriggered = BaseId + 13; //1113
     }
 
     public static class TeamsCommunication
@@ -81,5 +83,11 @@ public class LogNumbers
         public const int RemoveDiscoveryMessageAsyncException = BaseId + 22; //1422
         public const int StopAsyncNoClientAvailable = BaseId + 23; //1423
         public const int StopAsyncMqttClientNotStarted = BaseId + 24; //1424
+        public const int SendUpdatesAsync = BaseId + 25; //1425
+        public const int SendUpdatesAsyncSensorInformationEmpty = BaseId + 26; //1426
+        public const int SendUpdatesAsyncPayload = BaseId + 27; //1427
+        public const int SendUpdatesAsyncUpdatePublished = BaseId + 28; //1428
+        public const int SendUpdatesAsyncException = BaseId + 29; //1429
+        public const int SendUpdatesAsyncSensorStateTopic = BaseId + 30; //1430
     }
 }

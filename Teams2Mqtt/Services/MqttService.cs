@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Microsoft.Extensions.Options;
 using MQTTnet;
 using MQTTnet.Client;
@@ -45,9 +45,7 @@ public class MqttService : IDisposable
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
     }
-
-
-
+    
     public async Task StartAsync()
     {
         Logger.LogDebug(LogNumbers.MqttService.StartAsync, $"Initializing the MQTT configuration");
@@ -92,7 +90,7 @@ public class MqttService : IDisposable
 
         await MqttClient.StartAsync(managedMqttClientOptions);
     }
-
+    
     /// <summary>
     /// Removes the automatic registration at Home Assistant and stops the MQTT Client
     /// </summary>
@@ -139,7 +137,7 @@ public class MqttService : IDisposable
                 Name = "Teams2Mqtt",
                 Identifiers = new[] { "Teams2Mqtt" },
                 Model = "Microsoft Teams API",
-                Manufacturer = "Microsoft",
+                Manufacturer = "",
                 SoftwareVersion = "",
                 SuggestedArea = MqttConfiguration?.DeviceSuggestedArea
             };
@@ -160,7 +158,7 @@ public class MqttService : IDisposable
                 }
 
                 var discoveryMessageTopic = GetDiscoveryTopic<T>(sensorInformation.SensorId, componentType);
-                var sensorStateTopic = GetStateTopic<T>(sensorInformation.SensorId);
+                var sensorStateTopic = GetStateTopic<T>();
                 Logger.LogInformation(LogNumbers.MqttService.PublishDiscoveryMessagesAsyncTopicsGenerated, $"Topics for sensor \"{sensorPropertyInfo.Name}\":\nDiscovery Message: {discoveryMessageTopic}\nSensor State: {sensorStateTopic}");
 
                 await PublishConfigurationAsync<T>(sensorPropertyInfo, sensorInformation, device, sensorStateTopic, discoveryMessageTopic);
@@ -186,10 +184,8 @@ public class MqttService : IDisposable
             name = localization ?? name;
         }
 
-        var typeName = EnsureValidString(typeof(T).Name);
         var validatedSensorId = EnsureValidString(sensorInformation.SensorId ?? string.Empty);
-        var computerName = EnsureValidString(Environment.MachineName);
-        var uniqueId = $"{computerName}-{typeName}-{validatedSensorId}";
+        var uniqueId = $"{validatedSensorId}";
 
         var sensorConfiguration = new SensorComponentConfiguration()
         {
@@ -198,7 +194,8 @@ public class MqttService : IDisposable
             StateClass = StateClass.Measurement,
             Device = device,
             Name = name.Trim(),
-            UniqueId = uniqueId
+            UniqueId = uniqueId,
+            ValueTemplate = $"{{{{ value_json.{uniqueId} }}}}",
         };
 
         var messagePayload = JsonSerializer.Serialize(sensorConfiguration, DefaultJsonSerializerOptions);
@@ -244,6 +241,69 @@ public class MqttService : IDisposable
         catch (Exception ex)
         {
             Logger.LogError(LogNumbers.MqttService.SendAvailabilityMessageAsyncException, ex, $"An error occurred while sending the availability message to the broker: {ex}");
+        }
+    }
+
+    /// <summary>
+    /// Sends updated values to the MQTT broker for the given <paramref name="updatedEntity"/>
+    /// </summary>
+    /// <param name="updatedEntity">The <see cref="updatedEntity"/> for which the update message should be sent</param>
+    public async Task SendUpdatesAsync<T>(T updatedEntity)
+    {
+        var updatedEntityType = typeof(T);
+        using var scope = Logger.BeginScope($"{nameof(MqttService)}:{nameof(SendUpdatesAsync)}");
+        try
+        {
+            if (!Enabled)
+            {
+                return;
+            }
+
+            Logger.LogTrace(LogNumbers.MqttService.SendUpdatesAsync, $"Sending updated values for \"{updatedEntityType.Name}\"");
+            if (MqttClient == null || !MqttClient.IsStarted || updatedEntity == null)
+            {
+                return;
+            }
+
+            await SendAvailabilityMessageAsync("online");
+
+            var sensorStateTopic = GetStateTopic<T>();
+            Logger.LogTrace(LogNumbers.MqttService.SendUpdatesAsyncSensorStateTopic, $"Using topic \"{sensorStateTopic}\"");
+
+            // Get all sensors from the state object. Sensors are all properties that have a SensorAttribute.
+            var sensors = updatedEntityType.GetProperties().Where(p => p.GetCustomAttribute<SensorAttribute>() != null).ToList();
+            var sensorUpdateMessage = new Dictionary<string, object>();
+            foreach (var sensorPropertyInfo in sensors)
+            {
+                var sensorInformation = sensorPropertyInfo.GetCustomAttribute<SensorAttribute>();
+                if (sensorInformation == null || string.IsNullOrWhiteSpace(sensorInformation.SensorId))
+                {
+                    Logger.LogWarning(LogNumbers.MqttService.SendUpdatesAsyncSensorInformationEmpty, $"The sensor \"{sensorPropertyInfo.Name}\" has incomplete sensor information and will be skipped.");
+                    continue;
+                }
+
+                var entityValue = (bool)(sensorPropertyInfo.GetValue(updatedEntity) ?? false);
+
+                var value = entityValue ? "ON" : "OFF";
+
+                sensorUpdateMessage.Add(sensorInformation.SensorId, value);
+            }
+
+            var statePayload = JsonSerializer.Serialize(sensorUpdateMessage, DefaultJsonSerializerOptions);
+            Logger.LogTrace(LogNumbers.MqttService.SendUpdatesAsyncPayload, $"Payload for update of \"{updatedEntityType.Name}\": {statePayload}");
+            
+            var updateMessage = new MqttApplicationMessageBuilder()
+                .WithTopic(sensorStateTopic)
+                .WithPayload(statePayload)
+                .Build();
+
+            await MqttClient.EnqueueAsync(updateMessage);
+
+            Logger.LogTrace(LogNumbers.MqttService.SendUpdatesAsyncUpdatePublished, $"Published state update for \"{updatedEntityType.Name}\"");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(LogNumbers.MqttService.SendUpdatesAsyncException, ex, $"An error occurred while updating the state for \"{updatedEntityType.Name}\": {ex}");
         }
     }
 
@@ -334,13 +394,11 @@ public class MqttService : IDisposable
     /// <summary>
     /// Generates the state topic for the given sensor
     /// </summary>
-    /// <param name="sensorId">The Id of the sensor for which the discovery topic should be generated</param>
-    protected string GetStateTopic<T>(string sensorId)
+    protected string GetStateTopic<T>()
     {
         var typeName = EnsureValidString(typeof(T).Name);
-        var validatedSensorId = EnsureValidString(sensorId ?? string.Empty);
         var computerName = EnsureValidString(Environment.MachineName);
-        return $"teams2mqtt/sensor/{computerName}-{typeName}-{validatedSensorId}/state";
+        return $"teams2mqtt/sensor/{computerName}-{typeName}/state";
     }
     /// <summary>
     /// The topic that is used to broadcast the availability messages

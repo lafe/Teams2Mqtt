@@ -45,7 +45,14 @@ public class Worker : BackgroundService
         Task.Factory.StartNew(async message =>
         {
             var meetingState = (message as MeetingUpdateMessage)?.MeetingUpdate?.MeetingState;
-            Logger.LogInformation($"Meeting started: {meetingState?.IsInMeeting}");
+            if (meetingState == null)
+            {
+                Logger.LogWarning(LogNumbers.Worker.MeetingUpdateMessageReceivedMeetingStateEmpty, $"The received meeting state object is empty.");
+                return;
+            }
+
+            Logger.LogTrace(LogNumbers.Worker.MeetingUpdateMessageReceivedMeetingStateChangeTriggered, $"Meeting state event has been triggered");
+            await MqttService.SendUpdatesAsync(meetingState);
         }, e);
             
     }
