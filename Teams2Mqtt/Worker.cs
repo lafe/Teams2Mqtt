@@ -32,15 +32,36 @@ public class Worker : BackgroundService
     {
         Logger.LogInformation(LogNumbers.Worker.Initializing, "Initializing monitoring services");
 
-        TeamsCommunication.MeetingUpdateMessageReceived += MeetingUpdateMessageReceived;
+        TeamsCommunication.ConnectionEstablished += OnConnectionEstablished;
+        TeamsCommunication.MeetingUpdateMessageReceived += OnMeetingUpdateMessageReceived;
+        TeamsCommunication.ConnectionClosed += OnConnectionClosed;
+        Logger.LogTrace(LogNumbers.Worker.ExecuteAsyncAddedEventReceivers, $"Added event receivers for Teams messages");
+
         await TeamsCommunication.ConnectAsync(stoppingToken);
         await MqttService.StartAsync();
         await MqttService.PublishDiscoveryMessagesAsync<MeetingState>();
 
         Logger.LogInformation(LogNumbers.Worker.Initialized, "Monitoring services initialized");
     }
+    private void OnConnectionEstablished(object? sender, EventArgs e)
+    {
+        Task.Factory.StartNew(async () =>
+        {
+            Logger.LogTrace(LogNumbers.Worker.OnConnectionEstablishedTeamsOnline, $"Teams connection has been established. Sending online message.");
+            await MqttService.SendOnlineAvailabilityMessageAsync();
+        });
+    }
 
-    private void MeetingUpdateMessageReceived(object sender, MeetingUpdateMessage e)
+    private void OnConnectionClosed(object? sender, EventArgs e)
+    {
+        Task.Factory.StartNew(async () =>
+        {
+            Logger.LogTrace(LogNumbers.Worker.OnConnectionClosedTeamsOffline, $"Teams connection has been closed. Sending offline message.");
+            await MqttService.SendOfflineAvailabilityMessageAsync();
+        });
+    }
+
+    private void OnMeetingUpdateMessageReceived(object sender, MeetingUpdateMessage e)
     {
         Task.Factory.StartNew(async message =>
         {
@@ -54,7 +75,6 @@ public class Worker : BackgroundService
             Logger.LogTrace(LogNumbers.Worker.MeetingUpdateMessageReceivedMeetingStateChangeTriggered, $"Meeting state event has been triggered");
             await MqttService.SendUpdatesAsync(meetingState);
         }, e);
-            
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)
@@ -67,8 +87,10 @@ public class Worker : BackgroundService
             await MqttService.StopAsync();
             Logger.LogTrace(LogNumbers.Worker.StopAsyncStoppedMqttService, $"Stopped MQTT service");
 
-            TeamsCommunication.MeetingUpdateMessageReceived -= MeetingUpdateMessageReceived;
-            Logger.LogTrace(LogNumbers.Worker.StopAsyncRemovedEventHandler, $"Unregistered event receiver for Teams messages");
+            TeamsCommunication.ConnectionEstablished -= OnConnectionEstablished;
+            TeamsCommunication.MeetingUpdateMessageReceived -= OnMeetingUpdateMessageReceived;
+            TeamsCommunication.ConnectionClosed -= OnConnectionClosed;
+            Logger.LogTrace(LogNumbers.Worker.StopAsyncRemovedEventHandler, $"Unregistered event receivers for Teams messages");
 
             await TeamsCommunication.DisconnectAsync();
             Logger.LogTrace(LogNumbers.Worker.StopAsyncDisconnectedTeams, $"Disconnected Teams connection");

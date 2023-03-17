@@ -16,4 +16,9 @@ public class AppConfiguration
     /// The port of the Teams Web Socket endpoint. The default value is 8124.
     /// </summary>
     public int TeamsWebSocketPort { get; set; } = 8124;
+
+    /// <summary>
+    /// The interval in seconds to wait before trying to reconnect to the Teams Web Socket endpoint. The default value is 10.
+    /// </summary>
+    public int TeamsReconnectInterval { get; set; } = 10;
 }

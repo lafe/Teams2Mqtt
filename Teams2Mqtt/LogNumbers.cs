@@ -24,6 +24,9 @@ public class LogNumbers
         public const int StopAsyncDisposedTeams = BaseId + 11; //1111
         public const int MeetingUpdateMessageReceivedMeetingStateEmpty = BaseId + 12; //1112
         public const int MeetingUpdateMessageReceivedMeetingStateChangeTriggered = BaseId + 13; //1113
+        public const int ExecuteAsyncAddedEventReceivers = BaseId + 14; //1114
+        public const int OnConnectionEstablishedTeamsOnline = BaseId + 15; //1115
+        public const int OnConnectionClosedTeamsOffline = BaseId + 16; //1116
     }
 
     public static class TeamsCommunication
@@ -46,6 +49,21 @@ public class LogNumbers
         public const int WebSocketListenerMessageEnd = BaseId + 14; //1214
         public const int WebSocketListenerDeserializedMessage = BaseId + 15; //1215
         public const int WebSocketListenerWebSocketError = BaseId + 16; //1216
+        public const int ReconnectTimerTick = BaseId + 17; //1217
+        public const int ReconnectTimerTickBackgroundTaskNull = BaseId + 18; //1218
+        public const int ReconnectTimerTickWebSocketNull = BaseId + 19; //1219
+        public const int ReconnectTimerTickLogNumber = BaseId + 20; //1220
+        public const int ReconnectTimerTickBackgroundTaskState = BaseId + 21; //1221
+        public const int ReconnectTimerTickException = BaseId + 22; //1222
+        public const int WebSocketListenerReconnectTimer = BaseId + 23; //1223
+        public const int ConnectAsyncCreatedNewWebSocket = BaseId + 24; //1224
+        public const int ConnectAsyncConnectionRefusedException = BaseId + 25; //1225
+        public const int ConnectAsyncConnectionRefusedDetailsException = BaseId + 26; //1226
+        public const int ConnectAsyncUnknownWebSocketException = BaseId + 27; //1227
+        public const int ConnectAsyncInvalidRequestException = BaseId + 28; //1228
+        public const int ConnectAsyncRaisedConnectionEstablishedEvent = BaseId + 29; //1229
+        public const int ConnectAsyncRaisedConnectionClosedEvent = BaseId + 30; //1230
+        public const int TeamsCommunicationTeamsReconnectionInterval = BaseId + 31; //1231
     }
     public static class MqttLogger
     {

@@ -108,7 +108,7 @@ public class MqttService : IDisposable
             return;
         }
         
-        await SendAvailabilityMessageAsync("offline");
+        await SendOfflineAvailabilityMessageAsync();
         await MqttClient.StopAsync(true);
     }
 
@@ -164,7 +164,7 @@ public class MqttService : IDisposable
                 await PublishConfigurationAsync<T>(sensorPropertyInfo, sensorInformation, device, sensorStateTopic, discoveryMessageTopic);
             }
             
-            await SendAvailabilityMessageAsync("online");
+            await SendOnlineAvailabilityMessageAsync();
 
             Logger.LogInformation(LogNumbers.MqttService.PublishDiscoveryMessageAsyncSuccess, $"Published all auto discovery messages for \"{stateObjectType.Name}\".");
         }
@@ -212,11 +212,20 @@ public class MqttService : IDisposable
         Logger.LogInformation(LogNumbers.MqttService.PublishConfigurationAsyncConfigPublished, $"Published auto discovery message for sensor \"{sensorInformation.SensorId}\"");
     }
 
+    public async Task SendOnlineAvailabilityMessageAsync()
+    {
+        await SendAvailabilityMessageAsync("online");
+    }
+    public async Task SendOfflineAvailabilityMessageAsync()
+    {
+        await SendAvailabilityMessageAsync("offline");
+    }
+
     /// <summary>
     /// Sends an availability message to the MQTT broker
     /// </summary>
     /// <param name="payload">The payload that should be sent to the availability topic</param>
-    private async Task SendAvailabilityMessageAsync(string payload)
+    protected async Task SendAvailabilityMessageAsync(string payload)
     {
         using var scope = Logger.BeginScope($"{nameof(MqttService)}:{nameof(SendAvailabilityMessageAsync)}");
         try
@@ -265,7 +274,7 @@ public class MqttService : IDisposable
                 return;
             }
 
-            await SendAvailabilityMessageAsync("online");
+            await SendOnlineAvailabilityMessageAsync();
 
             var sensorStateTopic = GetStateTopic<T>();
             Logger.LogTrace(LogNumbers.MqttService.SendUpdatesAsyncSensorStateTopic, $"Using topic \"{sensorStateTopic}\"");

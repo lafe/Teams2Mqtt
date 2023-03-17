@@ -20,9 +20,20 @@ public class TeamsCommunication : IDisposable
     protected ILogger<TeamsCommunication> Logger { get; }
     protected AppConfiguration Configuration { get; }
 
-    protected ClientWebSocket WebSocket { get; }
+    /// <summary>
+    /// The <see cref="ClientWebSocket"/> used to connect with Teams
+    /// </summary>
+    protected ClientWebSocket? WebSocket { get; set; }
 
+    /// <summary>
+    /// The task that listens to Teams messaged sent through the <see cref="WebSocket"/>
+    /// </summary>
     protected Task? ListenerBackgroundTask { get; set; }
+
+    /// <summary>
+    /// Timer that is used to connect to Teams, when the <see cref="WebSocket"/> is closed
+    /// </summary>
+    protected Timer? ReconnectTimer { get; set; }
 
     public delegate void MeetingUpdateMessageReceivedHandler(object sender, MeetingUpdateMessage e);
     /// <summary>
@@ -30,12 +41,55 @@ public class TeamsCommunication : IDisposable
     /// </summary>
     public event MeetingUpdateMessageReceivedHandler? MeetingUpdateMessageReceived;
 
+    /// <summary>
+    /// Is executed when the connection with Teams has been established
+    /// </summary>
+    public event EventHandler? ConnectionEstablished;
+    /// <summary>
+    /// Is executed when the connection with Teams has been closed
+    /// </summary>
+    public event EventHandler? ConnectionClosed;
+
     public TeamsCommunication(ILogger<TeamsCommunication> logger, IOptions<AppConfiguration> configuration)
     {
         Logger = logger;
         Configuration = configuration.Value;
 
-        WebSocket = new ClientWebSocket();
+        Logger.LogInformation(LogNumbers.TeamsCommunication.TeamsCommunicationTeamsReconnectionInterval, $"Using a reconnection interval of {Configuration.TeamsReconnectInterval}s.");
+        ReconnectTimer = new Timer(ReconnectTimerTick, null, TimeSpan.FromSeconds(Configuration.TeamsReconnectInterval), TimeSpan.FromSeconds(Configuration.TeamsReconnectInterval));
+    }
+
+    private void ReconnectTimerTick(object? state)
+    {
+        using var scope = Logger.BeginScope($"{nameof(TeamsCommunication)}:{nameof(ConnectAsync)}");
+        try
+        {
+            // Stop timer
+            ReconnectTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+
+            
+            if (WebSocket?.State != WebSocketState.Closed)
+            {
+                return;
+            }
+
+            Logger.LogTrace(LogNumbers.TeamsCommunication.ReconnectTimerTickLogNumber, $"Web Socket is in state {WebSocket?.State}. Requiring reconnect.");
+
+            ListenerBackgroundTask?.Dispose();
+#pragma warning disable CS4014
+            // Allow "Fire and Forget" async call
+            ConnectAsync();
+#pragma warning restore CS4014
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(LogNumbers.TeamsCommunication.ReconnectTimerTickException, ex, $"An error occurred while executing the Reconnect Timer handler: {ex}");
+        }
+        finally
+        {
+            // Resume timer
+            ReconnectTimer?.Change(TimeSpan.FromSeconds(Configuration.TeamsReconnectInterval), TimeSpan.FromSeconds(Configuration.TeamsReconnectInterval));
+        }
     }
 
     protected string BuildWebSocketUrl()
@@ -54,18 +108,39 @@ public class TeamsCommunication : IDisposable
         try
         {
             Logger.LogTrace(LogNumbers.TeamsCommunication.ConnectAsync, $"Connecting to Teams");
+            WebSocket?.Dispose();
+            WebSocket = new ClientWebSocket(); // We do have to create a new connection every time, because it gets disposed when an error occurs
+            Logger.LogTrace(LogNumbers.TeamsCommunication.ConnectAsyncCreatedNewWebSocket, $"Created new Web Socket object for connection with Teams");
             var webSocketUrl = BuildWebSocketUrl();
             Logger.LogDebug(LogNumbers.TeamsCommunication.ConnectAsyncConnecting, $"Connecting to Teams with URL \"{webSocketUrl}\"");
             await WebSocket.ConnectAsync(new Uri(webSocketUrl), cancellationToken);
             Logger.LogTrace(LogNumbers.TeamsCommunication.ConnectAsyncConnected, $"Completed connection to Teams");
 
+            ConnectionEstablished?.Invoke(this, EventArgs.Empty);
+            Logger.LogTrace(LogNumbers.TeamsCommunication.ConnectAsyncRaisedConnectionEstablishedEvent, $"Raised ConnectionEstablished event");
+
             ListenerBackgroundTask = Task.Run(WebSocketListener, cancellationToken);
             Logger.LogTrace(LogNumbers.TeamsCommunication.ConnectAsyncCreatedBackgroundTask, $"Created background task");
+        }
+        catch (WebSocketException ex)
+        {
+            if (ex.WebSocketErrorCode == WebSocketError.Faulted)
+            {
+                Logger.LogWarning(LogNumbers.TeamsCommunication.ConnectAsyncConnectionRefusedException, ex, $"A connection with Teams could not be established, because the connection has been refused (\"{ex.Message}\"). Is Teams running and is the API key correct?");
+                Logger.LogDebug(LogNumbers.TeamsCommunication.ConnectAsyncConnectionRefusedDetailsException, ex, $"Details of the refused connection: {ex}");
+            }
+            else if (ex.WebSocketErrorCode == WebSocketError.NotAWebSocket)
+            {
+                Logger.LogError(LogNumbers.TeamsCommunication.ConnectAsyncInvalidRequestException, ex, $"A connection with Teams could not be established, because the connection request was invalid: {ex.Message}. Is Teams running and is the API key correct?");
+            }
+            else
+            {
+                Logger.LogError(LogNumbers.TeamsCommunication.ConnectAsyncUnknownWebSocketException, ex, $"An unhandled WebSocketException error ({ex.WebSocketErrorCode}) occurred while trying to connect to Teams: {ex}");
+            }
         }
         catch (Exception ex)
         {
             Logger.LogError(LogNumbers.TeamsCommunication.ConnectAsyncException, ex, $"An error occurred while trying to connect to Teams: {ex}");
-            throw;
         }
     }
 
@@ -76,7 +151,7 @@ public class TeamsCommunication : IDisposable
     {
         var buffer = new byte[1024];
         var serializedMessage = string.Empty;
-        while (WebSocket.State == WebSocketState.Open)
+        while (WebSocket?.State == WebSocketState.Open)
         {
             try
             {
@@ -87,10 +162,13 @@ public class TeamsCommunication : IDisposable
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
                     Logger.LogInformation(LogNumbers.TeamsCommunication.WebSocketListenerConnectionClosed, $"Teams has closed the connection. Closing the web socket.");
-                    if (WebSocket.State == WebSocketState.Open)
+                    if (WebSocket.State == WebSocketState.Open || WebSocket.State == WebSocketState.CloseReceived)
                     {
                         await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
                     }
+
+                    ConnectionClosed?.Invoke(this, EventArgs.Empty);
+                    Logger.LogTrace(LogNumbers.TeamsCommunication.ConnectAsyncRaisedConnectionClosedEvent, $"Raised ConnectionClosed event");
                 }
                 else
                 {
@@ -135,6 +213,10 @@ public class TeamsCommunication : IDisposable
 
     public async Task DisconnectAsync()
     {
+        if (WebSocket == null)
+        {
+            return;
+        }
         await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Shutting down application", CancellationToken.None);
     }
 
