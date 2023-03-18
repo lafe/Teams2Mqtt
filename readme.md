@@ -22,7 +22,7 @@ The service uses the "third-party devices" API of Teams. This API uses a web soc
 - [Troubleshooting](#troubleshooting)
   - [Service does not start](#service-does-not-start)
 - [Development](#development)
-  - [Publishing](#publishing)
+  - [Versioning](#versioning)
 - [Acknolwedgements](#acknolwedgements)
 
 ## Installation
@@ -221,13 +221,9 @@ A German translation could be as follows:
 
 ## Development
 
-### Publishing
+### Versioning
 
-The service should be published using the built-in profile. Microsoft [recommends](https://docs.microsoft.com/en-us/dotnet/core/extensions/windows-service#publish-the-app) to use a self-contained executable for services, so the project follows this guideline. On the command line, the following command can be used to create the application:
-
-```powershell
-dotnet publish -c Release --os win
-```
+The project uses [Nerdbank.GitVersioning](https://github.com/dotnet/Nerdbank.GitVersioning) for generating the version numbers.
 
 ## Acknolwedgements
 
