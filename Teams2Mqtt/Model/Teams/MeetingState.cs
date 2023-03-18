@@ -18,7 +18,7 @@ public class MeetingState
     [JsonPropertyName("isHandRaised")]
     public bool IsHandRaised { get; set; }
 
-    [Sensor("isInMeeting", "Is in Meeting", "isInMeeting")]
+    [Sensor("isInMeeting", "Is In Meeting", "isInMeeting")]
     [JsonPropertyName("isInMeeting")]
     public bool IsInMeeting { get; set; }
 
