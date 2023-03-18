@@ -41,7 +41,7 @@ jobs:
       - name: Upload standalone application without .NET runtime
         uses: actions/upload-artifact@v3
         with:
-          name: Teams2Mqtt (Single File)
+          name: Teams2Mqtt
           path: |
             ./output/dependent_executable
 
