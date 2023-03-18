@@ -1,0 +1,52 @@
+name: Build and Publish
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      # Install .NET SDK
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+          dotnet-quality: 'ga'
+
+      # Restore dependencies
+      - name: Install dependencies
+        run: dotnet restore
+
+      # Build application
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+      
+      # Create standalone application that includes the .NET runtime
+      - name: Publish standalone application with .NET runtime
+        if: success()
+        run: dotnet publish -c Release -r linux-x64 /p:PublishSingleFile=true /p:PublishTrimmed=true --self-contained false --output standalone_with_runtime
+      
+      # Create standalone application without the .NET runtime
+      - name: Publish standalone application without .NET runtime
+        if: success()
+        run: dotnet publish -c Release -r linux-x64 /p:PublishSingleFile=true /p:PublishTrimmed=true --self-contained true --output standalone_without_runtime
+
+      # Create a self-contained executable
+      - name: Publish self-contained executable
+        if: success()
+        run: dotnet publish -c Release -r linux-x64 /p:PublishSingleFile=true /p:PublishTrimmed=true --self-contained true /p:IncludeNativeLibrariesForSelfExtract=true --output self_contained_executable
+      
+      # Upload the artifacts
+      # - name: Upload Artifacts
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: Build artifacts
+      #     path: |
+      #       ./standalone_with_runtime
+      #       ./standalone_without_runtime
+      #       ./self_contained_executable
