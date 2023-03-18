@@ -1,3 +1,158 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=lafe/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Mqtt/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=Mqtt/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Applicability/=Surround/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Description/@EntryValue">Creates a logging enabled body of a method</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Field/=Class/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Field/=Class/Expression/@EntryValue">typeName()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Field/=Class/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Field/=Member/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Field/=Member/Expression/@EntryValue">typeMember()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Field/=Member/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/IsBlessed/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Mnemonic/@EntryValue">0</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Reformat/@EntryValue">True</s:Boolean>
+	
+	
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Scope/=2C285F182AC98D44B0B4F29D4D2149EC/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Scope/=2C285F182AC98D44B0B4F29D4D2149EC/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Scope/=2C285F182AC98D44B0B4F29D4D2149EC/Type/@EntryValue">InCSharpStatement</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Scope/=E6E678D4B937A84D8C4585DDD2F27DB0/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Scope/=E6E678D4B937A84D8C4585DDD2F27DB0/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Scope/=E6E678D4B937A84D8C4585DDD2F27DB0/Type/@EntryValue">InCSharpExpression</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Shortcut/@EntryValue">lbody</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=362E8558562BCA488731E47F407B6E7C/Text/@EntryValue">using (Logger.BeginScope($"{nameof($Class$)}:{nameof($Member$)}"))&#xD;
+{&#xD;
+    try&#xD;
+    {&#xD;
+        Logger.LogTrace(LogNumbers.$Class$.$Member$, $"Running method \"{nameof($Member$)}\" in class \"{nameof($Class$)}\"");&#xD;
+        $SELECTION$$END$&#xD;
+		Logger.LogTrace(LogNumbers.$Class$.$Member$Success, $"Completed method \"{nameof($Member$)}\" in class \"{nameof($Class$)}\"");&#xD;
+    }&#xD;
+    catch (Exception ex)&#xD;
+    {&#xD;
+        Logger.LogError(LogNumbers.$Class$.$Member$Exception, ex, $"An error occurred while executing method \"{nameof($Member$)}\" in class \"{nameof($Class$)}\": {ex}");&#xD;
+		throw;&#xD;
+    }&#xD;
+}</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Description/@EntryValue">Creates a critical message in the log</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Field/=classname/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Field/=classname/Expression/@EntryValue">typeName()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Field/=classname/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Field/=identifier/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Field/=identifier/Expression/@EntryValue">constant("LogNumber")</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Field/=identifier/Order/@EntryValue">2</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Field/=method/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Field/=method/Expression/@EntryValue">typeMember()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Field/=method/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Shortcut/@EntryValue">lcrit</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=3950001C2D4902448A1F77D908469179/Text/@EntryValue">Logger.LogCritical(LogNumbers.$classname$.$method$$identifier$, ex, $"$END$A critical error occurred while executing method \"$method$\": {ex}");</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Description/@EntryValue">Creates a trace message in the log</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Field/=classname/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Field/=classname/Expression/@EntryValue">typeName()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Field/=classname/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Field/=identifier/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Field/=identifier/Expression/@EntryValue">constant("LogNumber")</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Field/=identifier/Order/@EntryValue">2</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Field/=method/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Field/=method/Expression/@EntryValue">typeMember()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Field/=method/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Shortcut/@EntryValue">ltrace</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=64F0E4DA55083D4DAF0475FB7EA7CC3F/Text/@EntryValue">Logger.LogTrace(LogNumbers.$classname$.$method$$identifier$, $"$END$");</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Description/@EntryValue">Creates an information message in the log</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Field/=classname/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Field/=classname/Expression/@EntryValue">typeName()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Field/=classname/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Field/=identifier/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Field/=identifier/Expression/@EntryValue">constant("LogNumber")</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Field/=identifier/Order/@EntryValue">2</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Field/=method/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Field/=method/Expression/@EntryValue">typeMember()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Field/=method/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Shortcut/@EntryValue">linfo</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=980C2DAC27139047AAF8A5345A969B4A/Text/@EntryValue">Logger.LogInformation(LogNumbers.$classname$.$method$$identifier$, $"$END$");</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Description/@EntryValue">Creates an error message in the log</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Field/=classname/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Field/=classname/Expression/@EntryValue">typeName()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Field/=classname/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Field/=identifier/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Field/=identifier/Expression/@EntryValue">constant("LogNumber")</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Field/=identifier/Order/@EntryValue">2</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Field/=method/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Field/=method/Expression/@EntryValue">typeMember()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Field/=method/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Shortcut/@EntryValue">lerr</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=E7A0CD19A1E6CA4BBC54EA2E68C216FE/Text/@EntryValue">Logger.LogError(LogNumbers.$classname$.$method$$identifier$Exception, ex, $"$END$An error occurred while executing method \"$method$\": {ex}");</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Description/@EntryValue">Creates a warning message in the log</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Field/=classname/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Field/=classname/Expression/@EntryValue">typeName()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Field/=classname/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Field/=identifier/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Field/=identifier/Expression/@EntryValue">constant("LogNumber")</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Field/=identifier/Order/@EntryValue">2</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Field/=method/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Field/=method/Expression/@EntryValue">typeMember()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Field/=method/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Shortcut/@EntryValue">lwarn</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=EBD4AE4F2232974298516F3A101DF59B/Text/@EntryValue">Logger.LogWarning(LogNumbers.$classname$.$method$$identifier$, $"$END$");</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/@KeyIndexDefined">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Applicability/=Live/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Description/@EntryValue">Creates a warning message in the log</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Field/=classname/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Field/=classname/Expression/@EntryValue">typeName()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Field/=classname/Order/@EntryValue">0</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Field/=identifier/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Field/=identifier/Expression/@EntryValue">spacestounderstrokes(message)</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Field/=identifier/Order/@EntryValue">3</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Field/=message/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Field/=message/Expression/@EntryValue">constant("message")</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Field/=message/Order/@EntryValue">2</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Field/=method/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Field/=method/Expression/@EntryValue">typeMember()</s:String>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Field/=method/InitialRange/@EntryValue">-1</s:Int64>
+	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Field/=method/Order/@EntryValue">1</s:Int64>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Reformat/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Scope/=C3001E7C0DA78E4487072B7E050D86C5/@KeyIndexDefined">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Scope/=C3001E7C0DA78E4487072B7E050D86C5/CustomProperties/=minimumLanguageVersion/@EntryIndexedValue">2.0</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Scope/=C3001E7C0DA78E4487072B7E050D86C5/Type/@EntryValue">InCSharpFile</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Shortcut/@EntryValue">ldebug</s:String>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=F36C40D638583246B82287E4497111B4/Text/@EntryValue">Logger.LogDebug(LogNumbers.$classname$.$method$_$identifier$, $"$message$");</s:String>
+</wpf:ResourceDictionary>
