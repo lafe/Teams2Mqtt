@@ -29,17 +29,22 @@ jobs:
       # Create standalone application that includes the .NET runtime
       - name: Publish standalone application with .NET runtime
         if: success()
-        run: dotnet publish -c Release -r linux-x64 /p:PublishSingleFile=true /p:PublishTrimmed=true --self-contained false --output standalone_with_runtime
+        run: dotnet publish .\Teams2Mqtt\Teams2Mqtt.csproj -c Release -r win-x64 --self-contained --output output\self_contained_executable
       
       # Create standalone application without the .NET runtime
       - name: Publish standalone application without .NET runtime
         if: success()
-        run: dotnet publish -c Release -r linux-x64 /p:PublishSingleFile=true /p:PublishTrimmed=true --self-contained true --output standalone_without_runtime
+        run: dotnet publish .\Teams2Mqtt\Teams2Mqtt.csproj -c Release -r win-x64 --no-self-contained --output output\dependent_executable
 
-      # Create a self-contained executable
-      - name: Publish self-contained executable
+      # Create a single-file executable
+      - name: Publish single-file executable
         if: success()
-        run: dotnet publish -c Release -r linux-x64 /p:PublishSingleFile=true /p:PublishTrimmed=true --self-contained true /p:IncludeNativeLibrariesForSelfExtract=true --output self_contained_executable
+        run: dotnet publish .\Teams2Mqtt\Teams2Mqtt.csproj -c Release -r win-x64 --no-self-contained /p:PublishSingleFile=true --output output\single_file_executable
+      
+      # Create a self-contained, single-file executable
+      - name: Publish self-contained, single-file executable
+        if: success()
+        run: dotnet publish .\Teams2Mqtt\Teams2Mqtt.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true --output output\single_file_self_contained_executable
       
       # Upload the artifacts
       # - name: Upload Artifacts
