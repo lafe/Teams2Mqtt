@@ -9,9 +9,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+
+      - uses: dotnet/nbgv@master
+        id: nbgv
+      - name: Show version
+        run: echo 'SemVer2=${{ steps.nbgv.outputs.SemVer2 }}'
 
       - name: Rename appsettings.json
         run: mv ./Teams2Mqtt/appsettings.Example.json ./Teams2Mqtt/appsettings.json
