@@ -31,6 +31,13 @@ Currently, there is no automatic setup for this service available, so it has to 
 
 The application is a Windows service, so only Windows is supported. It uses .NET 7, so the [.NET Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) must be available. To check if the correct version of .NET is installed, you can use the command `dotnet --list-runtimes` on the command line. This command shows all installed runtimes and should include an entry for "`Microsoft.NETCore.App`" with at least version 7.0.0.
 
+There are two types of releases:
+
+- Multiple files: the application logic is placed in multiple files
+- Single file (**recommended**): the files of the "multiple files" release are packed into a single executable
+
+Microsoft [recommends](https://docs.microsoft.com/en-us/dotnet/core/extensions/windows-service#publish-the-app) to use a self-contained executable for services, so it is recommended to use the "Single file" release.
+
 After the current release of the software has been downloaded, the following steps are necessary to install the service:
 
 - Extract the archive in a folder of your choice. It is recommended to place it in the "Program Files" directory.
