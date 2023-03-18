@@ -13,8 +13,8 @@ jobs:
         with:
           fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
 
-      -name: Rename appsettings.json
-       run: mv ./Teams2Mqtt/appsettings.Example.json ./Teams2Mqtt/appsettings.json
+      - name: Rename appsettings.json
+        run: mv ./Teams2Mqtt/appsettings.Example.json ./Teams2Mqtt/appsettings.json
 
       # Install .NET SDK
       - name: Setup .NET
