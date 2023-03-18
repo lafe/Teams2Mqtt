@@ -26,30 +26,39 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
       
-      # Create standalone application that includes the .NET runtime
-      - name: Publish standalone application with .NET runtime
-        if: success()
-        run: dotnet publish ./Teams2Mqtt/Teams2Mqtt.csproj -c Release -r win-x64 --self-contained --output output/self_contained_executable
+      # # Create standalone application that includes the .NET runtime
+      # - name: Publish standalone application with .NET runtime
+      #   if: success()
+      #   run: dotnet publish ./Teams2Mqtt/Teams2Mqtt.csproj -c Release -r win-x64 --self-contained --output output/self_contained_executable
       
-      # Upload standalone application with .NET runtime
-      - name: Upload standalone application with .NET runtime
-        uses: actions/upload-artifact@v3
-        with:
-          name: Teams2Mqtt Standalone with .NET runtime
-          path: |
-            ./output/self_contained_executable
+
 
       # Create standalone application without the .NET runtime
       - name: Publish standalone application without .NET runtime
         if: success()
         run: dotnet publish ./Teams2Mqtt/Teams2Mqtt.csproj -c Release -r win-x64 --no-self-contained --output output/dependent_executable
 
+      - name: Upload standalone application without .NET runtime
+        uses: actions/upload-artifact@v3
+        with:
+          name: Teams2Mqtt (Single File)
+          path: |
+            ./output/dependent_executable
+
       # Create a single-file executable
       - name: Publish single-file executable
         if: success()
         run: dotnet publish ./Teams2Mqtt/Teams2Mqtt.csproj -c Release -r win-x64 --no-self-contained /p:PublishSingleFile=true --output output/single_file_executable
-      
-      # Create a self-contained, single-file executable
-      - name: Publish self-contained, single-file executable
-        if: success()
-        run: dotnet publish ./Teams2Mqtt/Teams2Mqtt.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true --output output/single_file_self_contained_executable
+
+      # Upload single-file executable with .NET runtime
+      - name: Upload single-file executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: Teams2Mqtt (Single File)
+          path: |
+            ./output/single_file_executable
+
+      # # Create a self-contained, single-file executable
+      # - name: Publish self-contained, single-file executable
+      #   if: success()
+      #   run: dotnet publish ./Teams2Mqtt/Teams2Mqtt.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true --output output/single_file_self_contained_executable
