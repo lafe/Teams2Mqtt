@@ -143,6 +143,7 @@ The `configuration` section contains general application settings that mostly de
 | `teamsWebSocketAddress`  | Optional | The address of the Teams Web Socket endpoint. This is normally "127.0.0.1" or "localhost". The default value is "`localhost`".                                                 |
 | `teamsWebSocketPort`     | Optional | The port of the Teams Web Socket endpoint. The default value is `8124`.                                                                                                        |
 | `teamsReconnectInterval` | Optional | The interval in seconds to wait before trying to reconnect to the Teams Web Socket endpoint if the connection was closed (or Teams is not running). The default value is `10`. |
+| `refreshInterval`        | Optional | The interval in seconds to wait before refreshing the state of the sensors. The default value is `30` seconds.                                                                 |
 
 #### Teams API Key
 

@@ -47,8 +47,8 @@ public class Worker : BackgroundService, IDisposable
         await TeamsCommunication.ConnectAsync(stoppingToken);
         Logger.LogInformation(LogNumbers.Worker.Initialized, "Monitoring services initialized");
 
-        RefreshStateTimer = new Timer(RefreshStateTimerCallback, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
-        Logger.LogTrace(LogNumbers.Worker.ExecuteAsyncRefreshStateTimerStarted, $"Refresh state timer started");
+        RefreshStateTimer = new Timer(RefreshStateTimerCallback, null, TimeSpan.FromSeconds(AppConfiguration.RefreshInterval), TimeSpan.FromMinutes(AppConfiguration.RefreshInterval));
+        Logger.LogInformation(LogNumbers.Worker.ExecuteAsyncRefreshStateTimerStarted, $"Refresh state timer started with an interval of {AppConfiguration.RefreshInterval} seconds.");
     }
     private void OnConnectionEstablished(object? sender, EventArgs e)
     {
