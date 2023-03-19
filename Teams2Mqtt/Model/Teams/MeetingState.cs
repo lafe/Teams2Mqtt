@@ -18,7 +18,7 @@ public class MeetingState
     [JsonPropertyName("isHandRaised")]
     public bool IsHandRaised { get; set; }
 
-    [HomeAssistantComponent("isInMeeting", "Is In Meeting", "isInMeeting", Icon= "mdi:human-greeting-proximity")]
+    [HomeAssistantBinarySensor("isInMeeting", "Is In Meeting", "isInMeeting", Icon= "mdi:human-greeting-proximity")]
     [JsonPropertyName("isInMeeting")]
     public bool IsInMeeting { get; set; }
 

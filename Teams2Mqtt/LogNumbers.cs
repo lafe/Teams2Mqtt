@@ -117,5 +117,6 @@ public class LogNumbers
         public const int SendUpdatesAsyncUpdatePublished = BaseId + 28; //1428
         public const int SendUpdatesAsyncException = BaseId + 29; //1429
         public const int SendUpdatesAsyncSensorStateTopic = BaseId + 30; //1430
+        public const int RemoveDiscoveryMessageAsyncSensorInformationEmpty = BaseId + 31; //1431
     }
 }
