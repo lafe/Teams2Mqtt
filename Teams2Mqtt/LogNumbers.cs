@@ -27,6 +27,11 @@ public class LogNumbers
         public const int ExecuteAsyncAddedEventReceivers = BaseId + 14; //1114
         public const int OnConnectionEstablishedTeamsOnline = BaseId + 15; //1115
         public const int OnConnectionClosedTeamsOffline = BaseId + 16; //1116
+        public const int MeetingUpdateMessageReceivedMeetingPermissionsEmpty = BaseId + 17; //1117
+        public const int MeetingUpdateMessageReceivedMeetingPermissionsChangeTriggered = BaseId + 18; //1118
+        public const int ExecuteAsyncRefreshStateTimerStarted = BaseId + 19; //1119
+        public const int StopAsyncStoppedTimerJob = BaseId + 20; //1120
+        public const int ExecuteAsyncStartedMqtt = BaseId + 21; //1121
     }
 
     public static class TeamsCommunication
@@ -64,6 +69,11 @@ public class LogNumbers
         public const int ConnectAsyncRaisedConnectionEstablishedEvent = BaseId + 29; //1229
         public const int ConnectAsyncRaisedConnectionClosedEvent = BaseId + 30; //1230
         public const int TeamsCommunicationTeamsReconnectionInterval = BaseId + 31; //1231
+        public const int SendRequestAsync = BaseId + 32; //1232
+        public const int SendRequestAsyncWebSocketConnectionMissing = BaseId + 33; //1233
+        public const int SendRequestAsyncSerializedContent = BaseId + 34; //1234
+        public const int SendRequestAsyncSuccess = BaseId + 35; //1235
+        public const int SendRequestAsyncException = BaseId + 36; //1236
     }
     public static class MqttLogger
     {

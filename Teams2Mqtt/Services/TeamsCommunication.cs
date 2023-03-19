@@ -2,6 +2,7 @@
 using System.Net.WebSockets;
 using System.Text.Json;
 using System.Text;
+using System.Text.Json.Serialization;
 using lafe.Teams2Mqtt.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -50,6 +51,12 @@ public class TeamsCommunication : IDisposable
     /// </summary>
     public event EventHandler? ConnectionClosed;
 
+    /// <summary>
+    /// Contains the latest received state from Teams. If no state has yet been received, it will be <c>null</c>.
+    /// </summary>
+    public MeetingUpdateMessage? CurrentTeamsState { get; private set; }
+
+
     public TeamsCommunication(ILogger<TeamsCommunication> logger, IOptions<AppConfiguration> configuration)
     {
         Logger = logger;
@@ -67,7 +74,7 @@ public class TeamsCommunication : IDisposable
             // Stop timer
             ReconnectTimer?.Change(Timeout.Infinite, Timeout.Infinite);
 
-            
+
             if (WebSocket?.State != WebSocketState.Closed)
             {
                 return;
@@ -121,6 +128,8 @@ public class TeamsCommunication : IDisposable
 
             ListenerBackgroundTask = Task.Run(WebSocketListener, cancellationToken);
             Logger.LogTrace(LogNumbers.TeamsCommunication.ConnectAsyncCreatedBackgroundTask, $"Created background task");
+
+            await RequestMeetingStatusAsync(cancellationToken);
         }
         catch (WebSocketException ex)
         {
@@ -190,6 +199,7 @@ public class TeamsCommunication : IDisposable
                         {
                             Logger.LogTrace(LogNumbers.TeamsCommunication.WebSocketListenerMeetingUpdate, $"Message contains data and is not an error. Raising new Meeting Update received event.");
                             MeetingUpdateMessageReceived?.Invoke(this, meetingUpdate);
+                            CurrentTeamsState = meetingUpdate;
                         }
                         else
                         {
@@ -210,6 +220,140 @@ public class TeamsCommunication : IDisposable
             }
         }
     }
+
+    /// <summary>
+    /// Sends a request to Teams to retrieve the current Meeting Status
+    /// </summary>
+    public async Task RequestMeetingStatusAsync(CancellationToken cancellationToken = default)
+    {
+        var queryMeetingAction = new TeamsAction("query-meeting-state", "query-meeting-state");
+        await SendRequestAsync(queryMeetingAction, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a request to Teams to toggle the mute state
+    /// </summary>
+    public async Task ToggleMuteAsync(CancellationToken cancellationToken = default)
+    {
+        var queryMeetingAction = new TeamsAction("toggle-mute", "toggle-mute");
+        await SendRequestAsync(queryMeetingAction, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a request to Teams to toggle the video camera state
+    /// </summary>
+    public async Task ToggleVideoAsync(CancellationToken cancellationToken = default)
+    {
+        var queryMeetingAction = new TeamsAction("toggle-video", "toggle-video");
+        await SendRequestAsync(queryMeetingAction, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a request to Teams to toggle the "raised hand" state
+    /// </summary>
+    public async Task ToggleRaisedHandAsync(CancellationToken cancellationToken = default)
+    {
+        var queryMeetingAction = new TeamsAction("raise-hand", "toggle-hand");
+        await SendRequestAsync(queryMeetingAction, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a request to Teams to toggle the "background blur" state
+    /// </summary>
+    public async Task ToggleBackgroundBlurAsync(CancellationToken cancellationToken = default)
+    {
+        var queryMeetingAction = new TeamsAction("background-blur", "toggle-background-blur");
+        await SendRequestAsync(queryMeetingAction, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a request to Teams to leave the current call
+    /// </summary>
+    public async Task LeaveCallAsync(CancellationToken cancellationToken = default)
+    {
+        var queryMeetingAction = new TeamsAction("call", "leave-call");
+        await SendRequestAsync(queryMeetingAction, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a request to Teams to react with applause
+    /// </summary>
+    public async Task ReactWithApplauseAsync(CancellationToken cancellationToken = default)
+    {
+        var queryMeetingAction = new TeamsAction("call", "react-applause");
+        await SendRequestAsync(queryMeetingAction, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a request to Teams to react with a laugh
+    /// </summary>
+    public async Task ReactWithLaughAsync(CancellationToken cancellationToken = default)
+    {
+        var queryMeetingAction = new TeamsAction("call", "react-laugh");
+        await SendRequestAsync(queryMeetingAction, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a request to Teams to react with a like
+    /// </summary>
+    public async Task ReactWithLikeAsync(CancellationToken cancellationToken = default)
+    {
+        var queryMeetingAction = new TeamsAction("call", "react-like");
+        await SendRequestAsync(queryMeetingAction, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a request to Teams to react with love
+    /// </summary>
+    public async Task ReactWithLoveAsync(CancellationToken cancellationToken = default)
+    {
+        var queryMeetingAction = new TeamsAction("call", "react-love");
+        await SendRequestAsync(queryMeetingAction, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a request to Teams to react with wow
+    /// </summary>
+    public async Task ReactWithWowAsync(CancellationToken cancellationToken = default)
+    {
+        var queryMeetingAction = new TeamsAction("call", "react-wow");
+        await SendRequestAsync(queryMeetingAction, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a given <paramref name="action"/> to Teams
+    /// </summary>
+    /// <param name="action">The <see cref="TeamsAction"/> that defines the message that should be sent</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can abort the async operation</param>
+    protected async Task SendRequestAsync(TeamsAction action, CancellationToken cancellationToken = default)
+    {
+        using var scope = Logger.BeginScope($"{nameof(TeamsCommunication)}:{nameof(ConnectAsync)}");
+        try
+        {
+            Logger.LogTrace(LogNumbers.TeamsCommunication.SendRequestAsync, $"Sending action \"{action.Action}\" of service \"{action.Service}\" to Teams");
+
+            if (WebSocket == null || WebSocket.State != WebSocketState.Open)
+            {
+                Logger.LogWarning(LogNumbers.TeamsCommunication.SendRequestAsyncWebSocketConnectionMissing, $"Web Socket connection is missing or not open. Cannot send action");
+                return;
+            }
+
+            var jsonAction = JsonSerializer.Serialize(action);
+            Logger.LogTrace(LogNumbers.TeamsCommunication.SendRequestAsyncSerializedContent, $"Serialized given {nameof(TeamsAction)} to string: {jsonAction}");
+
+            var jsonActionBytes = Encoding.UTF8.GetBytes(jsonAction);
+            await WebSocket.SendAsync(jsonActionBytes, WebSocketMessageType.Text, true, cancellationToken);
+
+            Logger.LogTrace(LogNumbers.TeamsCommunication.SendRequestAsyncSuccess, $"Sent action \"{action.Action}\" of service \"{action.Service}\" to Teams");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(LogNumbers.TeamsCommunication.SendRequestAsyncException, ex, $"An error occurred while sending action \"{action.Action}\" of service \"{action.Service}\" to Teams: {ex}");
+            throw;
+        }
+
+    }
+
 
     public async Task DisconnectAsync()
     {

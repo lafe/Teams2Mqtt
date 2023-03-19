@@ -7,13 +7,14 @@ using Microsoft.Extensions.Options;
 
 namespace lafe.Teams2Mqtt;
 
-public class Worker : BackgroundService
+public class Worker : BackgroundService, IDisposable
 {
     protected ILogger<Worker> Logger { get; }
     protected TeamsCommunication TeamsCommunication { get; }
     protected MqttConfiguration MqttConfiguration { get; }
     protected AppConfiguration AppConfiguration { get; }
     protected MqttService MqttService { get; }
+    protected Timer? RefreshStateTimer { get; set; }
 
     public Worker(ILogger<Worker> logger,
         IOptions<AppConfiguration> appConfiguration,
@@ -28,9 +29,15 @@ public class Worker : BackgroundService
         MqttService = mqttService;
     }
 
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         Logger.LogInformation(LogNumbers.Worker.Initializing, "Initializing monitoring services");
+
+        await MqttService.StartAsync();
+        await MqttService.PublishDiscoveryMessagesAsync<MeetingState>();
+        await MqttService.PublishDiscoveryMessagesAsync<MeetingPermissions>();
+        Logger.LogTrace(LogNumbers.Worker.ExecuteAsyncStartedMqtt, $"Started MQTT service");
 
         TeamsCommunication.ConnectionEstablished += OnConnectionEstablished;
         TeamsCommunication.MeetingUpdateMessageReceived += OnMeetingUpdateMessageReceived;
@@ -38,10 +45,10 @@ public class Worker : BackgroundService
         Logger.LogTrace(LogNumbers.Worker.ExecuteAsyncAddedEventReceivers, $"Added event receivers for Teams messages");
 
         await TeamsCommunication.ConnectAsync(stoppingToken);
-        await MqttService.StartAsync();
-        await MqttService.PublishDiscoveryMessagesAsync<MeetingState>();
-
         Logger.LogInformation(LogNumbers.Worker.Initialized, "Monitoring services initialized");
+
+        RefreshStateTimer = new Timer(RefreshStateTimerCallback, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+        Logger.LogTrace(LogNumbers.Worker.ExecuteAsyncRefreshStateTimerStarted, $"Refresh state timer started");
     }
     private void OnConnectionEstablished(object? sender, EventArgs e)
     {
@@ -69,12 +76,32 @@ public class Worker : BackgroundService
             if (meetingState == null)
             {
                 Logger.LogWarning(LogNumbers.Worker.MeetingUpdateMessageReceivedMeetingStateEmpty, $"The received meeting state object is empty.");
-                return;
+            }
+            else
+            {
+                Logger.LogTrace(LogNumbers.Worker.MeetingUpdateMessageReceivedMeetingStateChangeTriggered, $"Meeting state event has been triggered");
+                await MqttService.SendUpdatesAsync(meetingState);
             }
 
-            Logger.LogTrace(LogNumbers.Worker.MeetingUpdateMessageReceivedMeetingStateChangeTriggered, $"Meeting state event has been triggered");
-            await MqttService.SendUpdatesAsync(meetingState);
+            var meetingPermissions = (message as MeetingUpdateMessage)?.MeetingUpdate?.MeetingPermissions;
+            if (meetingPermissions == null)
+            {
+                Logger.LogWarning(LogNumbers.Worker.MeetingUpdateMessageReceivedMeetingPermissionsEmpty, $"The received meeting permissions object is empty.");
+            }
+            else
+            {
+                Logger.LogTrace(LogNumbers.Worker.MeetingUpdateMessageReceivedMeetingPermissionsChangeTriggered, $"Meeting permissions event has been triggered");
+                await MqttService.SendUpdatesAsync(meetingPermissions);
+            }
         }, e);
+    }
+
+    private void RefreshStateTimerCallback(object? state)
+    {
+        Task.Factory.StartNew(async message =>
+        {
+            await TeamsCommunication.RequestMeetingStatusAsync();
+        }, null);
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)
@@ -83,7 +110,15 @@ public class Worker : BackgroundService
         try
         {
             Logger.LogInformation(LogNumbers.Worker.StopAsync, $"Stop signal received. Stopping all services and removing any registrations.");
+
+            if (RefreshStateTimer != null)
+            {
+                await RefreshStateTimer.DisposeAsync();
+                Logger.LogTrace(LogNumbers.Worker.StopAsyncStoppedTimerJob, $"Stopped refresh state timer");
+            }
+
             await MqttService.RemoveDiscoveryMessageAsync<MeetingState>();
+            await MqttService.RemoveDiscoveryMessageAsync<MeetingPermissions>();
             await MqttService.StopAsync();
             Logger.LogTrace(LogNumbers.Worker.StopAsyncStoppedMqttService, $"Stopped MQTT service");
 
