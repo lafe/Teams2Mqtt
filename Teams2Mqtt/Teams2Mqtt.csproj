@@ -31,7 +31,6 @@
     <Folder Include="Model\Teams\" />
     <Folder Include="Mqtt\ComponentConfiguration\" />
     <Folder Include="Extensions\" />
-    <Folder Include="Attributes\" />
     <Folder Include="Converters\" />
     <Folder Include="Services\" />
   </ItemGroup>

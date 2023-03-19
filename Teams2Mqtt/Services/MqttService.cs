@@ -129,8 +129,8 @@ public class MqttService : IDisposable
             }
 
 
-            // Get all sensors from the state object. Sensors are all properties that have a SensorAttribute.
-            var sensors = stateObjectType.GetProperties().Where(p => p.GetCustomAttribute<SensorAttribute>() != null).ToList();
+            // Get all sensors from the state object. Sensors are all properties that have a HomeAssistantComponentAttribute.
+            var sensors = stateObjectType.GetProperties().Where(p => p.GetCustomAttribute<HomeAssistantComponentAttribute>() != null).ToList();
 
             var device = new HomeAssistantDevice()
             {
@@ -144,7 +144,7 @@ public class MqttService : IDisposable
 
             foreach (var sensorPropertyInfo in sensors)
             {
-                var sensorInformation = sensorPropertyInfo.GetCustomAttribute<SensorAttribute>();
+                var sensorInformation = sensorPropertyInfo.GetCustomAttribute<HomeAssistantComponentAttribute>();
                 if (sensorInformation == null || string.IsNullOrWhiteSpace(sensorInformation.SensorId))
                 {
                     Logger.LogWarning(LogNumbers.MqttService.PublishDiscoveryMessagesAsyncSensorInformationEmpty, $"The sensor \"{sensorPropertyInfo.Name}\" has incomplete sensor information and will be skipped.");
@@ -175,16 +175,16 @@ public class MqttService : IDisposable
         }
     }
 
-    protected async Task PublishConfigurationAsync<T>(PropertyInfo sensorPropertyInfo, SensorAttribute sensorInformation, HomeAssistantDevice device, string sensorStateTopic, string discoveryMessageTopic)
+    protected async Task PublishConfigurationAsync<T>(PropertyInfo sensorPropertyInfo, HomeAssistantComponentAttribute componentInformation, HomeAssistantDevice device, string sensorStateTopic, string discoveryMessageTopic)
     {
-        var name = sensorInformation.Name ?? sensorPropertyInfo.Name;
-        if (!string.IsNullOrWhiteSpace(sensorInformation.LocalizationKey))
+        var name = componentInformation.Name ?? sensorPropertyInfo.Name;
+        if (!string.IsNullOrWhiteSpace(componentInformation.LocalizationKey))
         {
-            var localization = SensorLocalizations.FirstOrDefault(sl => string.Equals(sl.SensorId, sensorInformation.SensorId))?.SensorName;
+            var localization = SensorLocalizations.FirstOrDefault(sl => string.Equals(sl.SensorId, componentInformation.SensorId))?.SensorName;
             name = localization ?? name;
         }
 
-        var validatedSensorId = EnsureValidString(sensorInformation.SensorId ?? string.Empty);
+        var validatedSensorId = EnsureValidString(componentInformation.SensorId ?? string.Empty);
         var uniqueId = $"{validatedSensorId}";
 
         var sensorConfiguration = new SensorComponentConfiguration()
@@ -195,13 +195,13 @@ public class MqttService : IDisposable
             Device = device,
             Name = name.Trim(),
             UniqueId = uniqueId,
-            Icon = sensorInformation.Icon,
-            EnabledByDefault = sensorInformation.EnabledByDefault,
+            Icon = componentInformation.Icon,
+            EnabledByDefault = componentInformation.EnabledByDefault,
             ValueTemplate = $"{{{{ value_json.{uniqueId} }}}}",
         };
 
         var messagePayload = JsonSerializer.Serialize(sensorConfiguration, DefaultJsonSerializerOptions);
-        Logger.LogTrace(LogNumbers.MqttService.PublishConfigurationAsyncPayload, $"Payload for configuration of sensor \"{sensorInformation.SensorId}\": {messagePayload}");
+        Logger.LogTrace(LogNumbers.MqttService.PublishConfigurationAsyncPayload, $"Payload for configuration of sensor \"{componentInformation.SensorId}\": {messagePayload}");
 
         var configurationMessage = new MqttApplicationMessageBuilder()
             .WithTopic(discoveryMessageTopic)
@@ -211,7 +211,7 @@ public class MqttService : IDisposable
 
         await MqttClient!.EnqueueAsync(configurationMessage);
 
-        Logger.LogInformation(LogNumbers.MqttService.PublishConfigurationAsyncConfigPublished, $"Published auto discovery message for sensor \"{sensorInformation.SensorId}\"");
+        Logger.LogInformation(LogNumbers.MqttService.PublishConfigurationAsyncConfigPublished, $"Published auto discovery message for sensor \"{componentInformation.SensorId}\"");
     }
 
     public async Task SendOnlineAvailabilityMessageAsync()
@@ -281,12 +281,12 @@ public class MqttService : IDisposable
             var sensorStateTopic = GetStateTopic<T>();
             Logger.LogTrace(LogNumbers.MqttService.SendUpdatesAsyncSensorStateTopic, $"Using topic \"{sensorStateTopic}\"");
 
-            // Get all sensors from the state object. Sensors are all properties that have a SensorAttribute.
-            var sensors = updatedEntityType.GetProperties().Where(p => p.GetCustomAttribute<SensorAttribute>() != null).ToList();
+            // Get all sensors from the state object. Sensors are all properties that have a HomeAssistantComponentAttribute.
+            var sensors = updatedEntityType.GetProperties().Where(p => p.GetCustomAttribute<HomeAssistantComponentAttribute>() != null).ToList();
             var sensorUpdateMessage = new Dictionary<string, object>();
             foreach (var sensorPropertyInfo in sensors)
             {
-                var sensorInformation = sensorPropertyInfo.GetCustomAttribute<SensorAttribute>();
+                var sensorInformation = sensorPropertyInfo.GetCustomAttribute<HomeAssistantComponentAttribute>();
                 if (sensorInformation == null || string.IsNullOrWhiteSpace(sensorInformation.SensorId))
                 {
                     Logger.LogWarning(LogNumbers.MqttService.SendUpdatesAsyncSensorInformationEmpty, $"The sensor \"{sensorPropertyInfo.Name}\" has incomplete sensor information and will be skipped.");
@@ -339,12 +339,12 @@ public class MqttService : IDisposable
                 return;
             }
 
-            // Get all sensors from the state object. Sensors are all properties that have a SensorAttribute.
-            var sensors = stateObjectType.GetProperties().Where(p => p.GetCustomAttribute<SensorAttribute>() != null).ToList();
+            // Get all sensors from the state object. Sensors are all properties that have a HomeAssistantComponentAttribute.
+            var sensors = stateObjectType.GetProperties().Where(p => p.GetCustomAttribute<HomeAssistantComponentAttribute>() != null).ToList();
             
             foreach (var sensorPropertyInfo in sensors)
             {
-                var sensorInformation = sensorPropertyInfo.GetCustomAttribute<SensorAttribute>();
+                var sensorInformation = sensorPropertyInfo.GetCustomAttribute<HomeAssistantComponentAttribute>();
                 if (sensorInformation == null || string.IsNullOrWhiteSpace(sensorInformation.SensorId))
                 {
                     Logger.LogWarning(LogNumbers.MqttService.PublishDiscoveryMessagesAsyncSensorInformationEmpty, $"The sensor \"{sensorPropertyInfo.Name}\" has incomplete sensor information and will be skipped.");
