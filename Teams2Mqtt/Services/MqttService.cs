@@ -27,6 +27,11 @@ public class MqttService : IDisposable
     protected JsonSerializerOptions DefaultJsonSerializerOptions { get; }
 
     /// <summary>
+    /// Saves a match between registered command topics and the associated Home Assistant Component configuration
+    /// </summary>
+    protected Dictionary<string, string> CommandTopicToComponentId { get; } = new Dictionary<string, string>();
+
+    /// <summary>
     /// Determines if MQTT publishing is active
     /// </summary>
     protected bool Enabled { get; private set; } = true;
@@ -45,7 +50,7 @@ public class MqttService : IDisposable
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
     }
-    
+
     public async Task StartAsync()
     {
         Logger.LogDebug(LogNumbers.MqttService.StartAsync, $"Initializing the MQTT configuration");
@@ -90,7 +95,7 @@ public class MqttService : IDisposable
 
         await MqttClient.StartAsync(managedMqttClientOptions);
     }
-    
+
     /// <summary>
     /// Removes the automatic registration at Home Assistant and stops the MQTT Client
     /// </summary>
@@ -107,7 +112,7 @@ public class MqttService : IDisposable
             Logger.LogInformation(LogNumbers.MqttService.StopAsyncMqttClientNotStarted, $"MQTT client is not started. Skipping stopping of client.");
             return;
         }
-        
+
         await SendOfflineAvailabilityMessageAsync();
         await MqttClient.StopAsync(true);
     }
@@ -151,19 +156,21 @@ public class MqttService : IDisposable
                     continue;
                 }
 
-                var componentType = HomeAssistantComponent.Sensor;
-                if (componentPropertyInfo.PropertyType == typeof(bool))
-                {
-                    componentType = HomeAssistantComponent.BinarySensor;
-                }
+                var componentType = GetComponentType(componentInformation);
 
                 var discoveryMessageTopic = GetDiscoveryTopic<T>(componentInformation.ComponentId, componentType);
                 var componentStateTopic = GetStateTopic<T>();
+                var commandTopic = GetCommandTopic<T>(componentInformation.ComponentId, componentType);
                 Logger.LogInformation(LogNumbers.MqttService.PublishDiscoveryMessagesAsyncTopicsGenerated, $"Topics for component \"{componentPropertyInfo.Name}\":\nDiscovery Message: {discoveryMessageTopic}\nComponent State: {componentStateTopic}");
 
-                await PublishConfigurationAsync<T>(componentPropertyInfo, componentInformation, device, componentStateTopic, discoveryMessageTopic);
+                if (!CommandTopicToComponentId.ContainsKey(commandTopic))
+                {
+                    CommandTopicToComponentId.Add(commandTopic, componentInformation.ComponentId);
+                }
+
+                await PublishConfigurationAsync<T>(componentPropertyInfo, componentInformation, componentType, device, componentStateTopic, discoveryMessageTopic, commandTopic);
             }
-            
+
             await SendOnlineAvailabilityMessageAsync();
 
             Logger.LogInformation(LogNumbers.MqttService.PublishDiscoveryMessageAsyncSuccess, $"Published all auto discovery messages for \"{stateObjectType.Name}\".");
@@ -175,7 +182,20 @@ public class MqttService : IDisposable
         }
     }
 
-    protected async Task PublishConfigurationAsync<T>(PropertyInfo componentPropertyInfo, HomeAssistantComponentAttribute componentInformation, HomeAssistantDevice device, string componentStateTopic, string discoveryMessageTopic)
+    protected HomeAssistantComponent GetComponentType(HomeAssistantComponentAttribute componentInfo)
+    {
+        switch (componentInfo.GetType().Name)
+        {
+            case $"{nameof(HomeAssistantBinarySensorAttribute)}":
+                return HomeAssistantComponent.BinarySensor;
+            case $"{nameof(HomeAssistantSwitchAttribute)}":
+                return HomeAssistantComponent.Switch;
+            default:
+                return HomeAssistantComponent.Sensor;
+        }
+    }
+
+    protected async Task PublishConfigurationAsync<T>(PropertyInfo componentPropertyInfo, HomeAssistantComponentAttribute componentInformation, HomeAssistantComponent componentType, HomeAssistantDevice device, string componentStateTopic, string discoveryMessageTopic, string commandTopic)
     {
         var name = componentInformation.Name ?? componentPropertyInfo.Name;
         if (!string.IsNullOrWhiteSpace(componentInformation.LocalizationKey))
@@ -199,6 +219,11 @@ public class MqttService : IDisposable
             EnabledByDefault = componentInformation.EnabledByDefault,
             ValueTemplate = $"{{{{ value_json.{uniqueId} }}}}",
         };
+
+        if (componentType == HomeAssistantComponent.Switch)
+        {
+            componentConfiguration.CommandTopic = commandTopic;
+        }
 
         var messagePayload = JsonSerializer.Serialize(componentConfiguration, DefaultJsonSerializerOptions);
         Logger.LogTrace(LogNumbers.MqttService.PublishConfigurationAsyncPayload, $"Payload for configuration of component \"{componentInformation.ComponentId}\": {messagePayload}");
@@ -302,7 +327,7 @@ public class MqttService : IDisposable
 
             var statePayload = JsonSerializer.Serialize(componentUpdateMessage, DefaultJsonSerializerOptions);
             Logger.LogTrace(LogNumbers.MqttService.SendUpdatesAsyncPayload, $"Payload for update of \"{updatedEntityType.Name}\": {statePayload}");
-            
+
             var updateMessage = new MqttApplicationMessageBuilder()
                 .WithTopic(componentStateTopic)
                 .WithPayload(statePayload)
@@ -341,7 +366,7 @@ public class MqttService : IDisposable
 
             // Get all components from the state object. Components are all properties that have a HomeAssistantComponentAttribute.
             var components = stateObjectType.GetProperties().Where(p => p.GetCustomAttribute<HomeAssistantComponentAttribute>() != null).ToList();
-            
+
             foreach (var componentPropertyInfo in components)
             {
                 var componentInformation = componentPropertyInfo.GetCustomAttribute<HomeAssistantComponentAttribute>();
@@ -351,11 +376,7 @@ public class MqttService : IDisposable
                     continue;
                 }
 
-                var componentType = HomeAssistantComponent.Sensor;
-                if (componentPropertyInfo.PropertyType == typeof(bool))
-                {
-                    componentType = HomeAssistantComponent.BinarySensor;
-                }
+                var componentType = GetComponentType(componentInformation);
 
                 var discoveryMessageTopic = GetDiscoveryTopic<T>(componentInformation.ComponentId, componentType);
                 Logger.LogInformation(LogNumbers.MqttService.RemoveDiscoveryMessageAsyncDiscoveryMessage, $"Discovery topic for component \"{componentPropertyInfo.Name}\": {discoveryMessageTopic}");
@@ -402,6 +423,22 @@ public class MqttService : IDisposable
             .Build();
         return discoveryMessageTopic;
     }
+
+    /// <summary>
+    /// Generates the command topic for the given component
+    /// </summary>
+    /// <param name="componentId">The id of the component for which the discovery topic should be generated</param>
+    /// <param name="component">The <see cref="HomeAssistantComponent"/> of the device</param>
+    protected string GetCommandTopic<T>(string componentId, HomeAssistantComponent component)
+    {
+        var typeName = EnsureValidString(typeof(T).Name);
+        var validatedComponentId = EnsureValidString(componentId ?? string.Empty);
+        var computerName = EnsureValidString(Environment.MachineName);
+
+        return $"teams2mqtt/{computerName}-{typeName}/{validatedComponentId}/set";
+    }
+
+
     /// <summary>
     /// Generates the state topic for the given component
     /// </summary>

@@ -24,8 +24,15 @@ public class SensorComponentConfiguration : BaseComponentConfiguration
     [JsonPropertyName("device_class"), Optional, JsonConverter(typeof(JsonStringEnumNameConverter<SensorDeviceClass>))]
     public SensorDeviceClass? DeviceClass { get; set; }
 
+
     /// <summary>
-    /// Flag which defines if the entity should be enabled when first added.
+    /// The type/class of the sensor to set the icon in the frontend.
+    /// </summary>
+    [JsonPropertyName("command_topic"), Optional]
+    public string? CommandTopic { get; set; }
+
+    /// <summary>
+    /// The MQTT topic to publish commands to change the switch state.
     /// </summary>
     [JsonPropertyName("enabled_by_default"), Optional]
     public bool EnabledByDefault { get; set; } = true;
