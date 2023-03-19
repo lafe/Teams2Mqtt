@@ -235,6 +235,12 @@ public class TeamsCommunication : IDisposable
     /// </summary>
     public async Task ToggleMuteAsync(CancellationToken cancellationToken = default)
     {
+        if (!(CurrentTeamsState?.MeetingUpdate?.MeetingPermissions?.CanToggleMute ?? false))
+        {
+            Logger.LogWarning(LogNumbers.TeamsCommunication.ToggleMuteAsyncPermissionsInsufficient, $"The current permissions of the Teams client do not allow to mute the call.");
+            await RequestMeetingStatusAsync(cancellationToken);
+            return;
+        }
         var queryMeetingAction = new TeamsAction("toggle-mute", "toggle-mute");
         await SendRequestAsync(queryMeetingAction, cancellationToken);
     }
@@ -244,6 +250,12 @@ public class TeamsCommunication : IDisposable
     /// </summary>
     public async Task ToggleVideoAsync(CancellationToken cancellationToken = default)
     {
+        if (!(CurrentTeamsState?.MeetingUpdate?.MeetingPermissions?.CanToggleVideo ?? false))
+        {
+            Logger.LogWarning(LogNumbers.TeamsCommunication.ToggleVideoAsyncPermissionsInsufficient, $"The current permissions of the Teams client do not allow to disable the video camera.");
+            await RequestMeetingStatusAsync(cancellationToken);
+            return;
+        }
         var queryMeetingAction = new TeamsAction("toggle-video", "toggle-video");
         await SendRequestAsync(queryMeetingAction, cancellationToken);
     }
@@ -253,6 +265,12 @@ public class TeamsCommunication : IDisposable
     /// </summary>
     public async Task ToggleRaisedHandAsync(CancellationToken cancellationToken = default)
     {
+        if (!(CurrentTeamsState?.MeetingUpdate?.MeetingPermissions?.CanToggleHand ?? false))
+        {
+            Logger.LogWarning(LogNumbers.TeamsCommunication.ToggleRaisedHandAsyncPermissionsInsufficient, $"The current permissions of the Teams client do not allow to raise the hand.");
+            await RequestMeetingStatusAsync(cancellationToken);
+            return;
+        }
         var queryMeetingAction = new TeamsAction("raise-hand", "toggle-hand");
         await SendRequestAsync(queryMeetingAction, cancellationToken);
     }
@@ -262,6 +280,12 @@ public class TeamsCommunication : IDisposable
     /// </summary>
     public async Task ToggleBackgroundBlurAsync(CancellationToken cancellationToken = default)
     {
+        if (!(CurrentTeamsState?.MeetingUpdate?.MeetingPermissions?.CanToggleVideo ?? false))
+        {
+            Logger.LogWarning(LogNumbers.TeamsCommunication.ToggleRaisedHandAsyncPermissionsInsufficient, $"The current permissions of the Teams client do not allow to toggle background blur.");
+            await RequestMeetingStatusAsync(cancellationToken);
+            return;
+        }
         var queryMeetingAction = new TeamsAction("background-blur", "toggle-background-blur");
         await SendRequestAsync(queryMeetingAction, cancellationToken);
     }
@@ -349,7 +373,6 @@ public class TeamsCommunication : IDisposable
         catch (Exception ex)
         {
             Logger.LogError(LogNumbers.TeamsCommunication.SendRequestAsyncException, ex, $"An error occurred while sending action \"{action.Action}\" of service \"{action.Service}\" to Teams: {ex}");
-            throw;
         }
 
     }

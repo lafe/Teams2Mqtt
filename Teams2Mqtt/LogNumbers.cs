@@ -32,6 +32,9 @@ public class LogNumbers
         public const int ExecuteAsyncRefreshStateTimerStarted = BaseId + 19; //1119
         public const int StopAsyncStoppedTimerJob = BaseId + 20; //1120
         public const int ExecuteAsyncStartedMqtt = BaseId + 21; //1121
+        public const int HomeAssistantActionReceived = BaseId + 22; //1122
+        public const int HomeAssistantActionReceivedSuccess = BaseId + 23; //1123
+        public const int HomeAssistantActionReceivedException = BaseId + 24; //1124
     }
 
     public static class TeamsCommunication
@@ -74,6 +77,9 @@ public class LogNumbers
         public const int SendRequestAsyncSerializedContent = BaseId + 34; //1234
         public const int SendRequestAsyncSuccess = BaseId + 35; //1235
         public const int SendRequestAsyncException = BaseId + 36; //1236
+        public const int ToggleMuteAsyncPermissionsInsufficient = BaseId + 37; //1237
+        public const int ToggleVideoAsyncPermissionsInsufficient = BaseId + 38; //1238
+        public const int ToggleRaisedHandAsyncPermissionsInsufficient = BaseId + 40; //1240
     }
     public static class MqttLogger
     {
@@ -118,5 +124,15 @@ public class LogNumbers
         public const int SendUpdatesAsyncException = BaseId + 29; //1429
         public const int SendUpdatesAsyncSensorStateTopic = BaseId + 30; //1430
         public const int RemoveDiscoveryMessageAsyncSensorInformationEmpty = BaseId + 31; //1431
+        public const int RemoveDiscoveryMessageAsyncUnsubscribedFromTopics = BaseId + 32; //1432
+        public const int HandleApplicationMessageReceived = BaseId + 33; //1433
+        public const int HandleApplicationMessageReceivedUnrecognizedTopic = BaseId + 34; //1434
+        public const int HandleApplicationMessageReceivedReceivedCommand = BaseId + 35; //1435
+        public const int HandleApplicationMessageReceivedSuccess = BaseId + 36; //1436
+        public const int HandleApplicationMessageReceivedException = BaseId + 37; //1437
+        public const int HandleApplicationMessageProcessed = BaseId + 38; //1438
+        public const int HandleApplicationMessageProcessedError = BaseId + 39; //1439
+        public const int HandleApplicationMessageSkipped = BaseId + 40; //1440
+        public const int HandleApplicationMessageSkippedError = BaseId + 41; //1441
     }
 }

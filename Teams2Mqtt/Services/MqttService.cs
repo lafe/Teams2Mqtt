@@ -12,6 +12,8 @@ using lafe.Teams2Mqtt.Model;
 using lafe.Teams2Mqtt.Mqtt;
 using lafe.Teams2Mqtt.Mqtt.ComponentConfiguration;
 using Microsoft.Extensions.Logging;
+using MQTTnet.Protocol;
+using lafe.Teams2Mqtt.Model.Teams;
 
 namespace lafe.Teams2Mqtt.Services;
 
@@ -29,12 +31,19 @@ public class MqttService : IDisposable
     /// <summary>
     /// Saves a match between registered command topics and the associated Home Assistant Component configuration
     /// </summary>
-    protected Dictionary<string, string> CommandTopicToComponentId { get; } = new Dictionary<string, string>();
+    protected Dictionary<string, string> CommandTopicToCommandId { get; } = new Dictionary<string, string>();
 
     /// <summary>
     /// Determines if MQTT publishing is active
     /// </summary>
     protected bool Enabled { get; private set; } = true;
+
+
+    public delegate void ActionReceivedHandler(object sender, string actionId, string payload);
+    /// <summary>
+    /// Is executed when an action has been received through MQTT
+    /// </summary>
+    public event ActionReceivedHandler? ActionReceived;
 
     public MqttService(ILogger<MqttService> logger, IOptions<MqttConfiguration> mqttConfiguration, IOptions<List<SensorLocalizationConfiguration>> sensorLocalizations, MqttLoggerFactory loggerFactory)
     {
@@ -120,7 +129,7 @@ public class MqttService : IDisposable
     /// <summary>
     /// Publishes a Home Assistant Discovery Message for the Teams state
     /// </summary>
-    public async Task PublishDiscoveryMessagesAsync<T>()
+    public async Task PublishDiscoveryMessagesAsync<T>(CancellationToken cancellationToken = default)
     {
         using var scope = Logger.BeginScope($"{nameof(MqttService)}:{nameof(PublishDiscoveryMessagesAsync)}");
         var stateObjectType = typeof(T);
@@ -160,20 +169,23 @@ public class MqttService : IDisposable
 
                 var discoveryMessageTopic = GetDiscoveryTopic<T>(componentInformation.ComponentId, componentType);
                 var componentStateTopic = GetStateTopic<T>();
-                var commandTopic = GetCommandTopic<T>(componentInformation.ComponentId, componentType);
-                Logger.LogInformation(LogNumbers.MqttService.PublishDiscoveryMessagesAsyncTopicsGenerated, $"Topics for component \"{componentPropertyInfo.Name}\":\nDiscovery Message: {discoveryMessageTopic}\nComponent State: {componentStateTopic}");
-
-                if (!CommandTopicToComponentId.ContainsKey(commandTopic))
+                var commandTopic = "";
+                if (componentType == HomeAssistantComponent.Switch && componentInformation is HomeAssistantSwitchAttribute switchComponentInformation)
                 {
-                    CommandTopicToComponentId.Add(commandTopic, componentInformation.ComponentId);
+                    commandTopic = GetCommandTopic<T>(switchComponentInformation.CommandId);
+                    CommandTopicToCommandId.Add(commandTopic, switchComponentInformation.CommandId);
                 }
+
+                Logger.LogInformation(LogNumbers.MqttService.PublishDiscoveryMessagesAsyncTopicsGenerated, $"Topics for component \"{componentPropertyInfo.Name}\":\nDiscovery Message: {discoveryMessageTopic}\nComponent State: {componentStateTopic}");
 
                 await PublishConfigurationAsync<T>(componentPropertyInfo, componentInformation, componentType, device, componentStateTopic, discoveryMessageTopic, commandTopic);
             }
 
             await SendOnlineAvailabilityMessageAsync();
-
             Logger.LogInformation(LogNumbers.MqttService.PublishDiscoveryMessageAsyncSuccess, $"Published all auto discovery messages for \"{stateObjectType.Name}\".");
+
+            MqttClient.ApplicationMessageReceivedAsync += HandleApplicationMessageReceived;
+            await SubscribeToCommandTopicsAsync();
         }
         catch (Exception ex)
         {
@@ -393,11 +405,69 @@ public class MqttService : IDisposable
             }
 
             Logger.LogTrace(LogNumbers.MqttService.RemoveDiscoveryMessageAsyncSuccess, $"Removed all auto discovery messages for \"{stateObjectType.Name}\"");
+
+            await UnsubscribeFromCommandTopicsAsync();
+            MqttClient.ApplicationMessageReceivedAsync -= HandleApplicationMessageReceived;
+            CommandTopicToCommandId.Clear();
+            Logger.LogTrace(LogNumbers.MqttService.RemoveDiscoveryMessageAsyncUnsubscribedFromTopics, $"Removed subscription to all topics");
         }
         catch (Exception ex)
         {
             Logger.LogError(LogNumbers.MqttService.RemoveDiscoveryMessageAsyncException, ex, $"An error occurred while removing auto discovery messages for \"{stateObjectType.Name}\": {ex}");
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Subscribe to all command topics
+    /// </summary>
+    /// <returns></returns>
+    public async Task SubscribeToCommandTopicsAsync()
+    {
+        foreach (var commandTopic in CommandTopicToCommandId.Keys)
+        {
+            await MqttClient.SubscribeAsync(commandTopic, MqttQualityOfServiceLevel.AtMostOnce);
+        }
+    }
+
+    /// <summary>
+    /// Unsubscribe from all command topics
+    /// </summary>
+    /// <returns></returns>
+    public async Task UnsubscribeFromCommandTopicsAsync()
+    {
+        foreach (var commandTopic in CommandTopicToCommandId.Keys)
+        {
+            await MqttClient.UnsubscribeAsync(commandTopic);
+        }
+    }
+
+
+    private async Task HandleApplicationMessageReceived(MqttApplicationMessageReceivedEventArgs args)
+    {
+        using var scope = Logger.BeginScope($"{nameof(TeamsCommunication)}:{nameof(HandleApplicationMessageReceived)}");
+        try
+        {
+            var topic = args.ApplicationMessage.Topic;
+            Logger.LogTrace(LogNumbers.MqttService.HandleApplicationMessageReceived, $"Received application message from topic {topic}");
+
+
+            if (!CommandTopicToCommandId.ContainsKey(topic))
+            {
+                Logger.LogWarning(LogNumbers.MqttService.HandleApplicationMessageReceivedUnrecognizedTopic, $"The topic \"{topic}\" is unrecognized and cannot be matched to a command.");
+                return;
+            }
+            var command = CommandTopicToCommandId[topic];
+            var payload = Encoding.UTF8.GetString(args.ApplicationMessage.Payload);
+            Logger.LogInformation(LogNumbers.MqttService.HandleApplicationMessageReceivedReceivedCommand, $"Received command \"{command}\" with payload \"{payload}\" through MQTT.");
+
+            ActionReceived?.Invoke(this, command, payload);
+
+            Logger.LogTrace(LogNumbers.MqttService.HandleApplicationMessageReceivedSuccess, $"Raised event {nameof(ActionReceived)} for command \"{command}\" with payload \"{payload}\".");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(LogNumbers.MqttService.HandleApplicationMessageReceivedException, ex, $"An error occurred while handling an incoming application message through MQTT: {ex}");
         }
     }
 
@@ -427,15 +497,14 @@ public class MqttService : IDisposable
     /// <summary>
     /// Generates the command topic for the given component
     /// </summary>
-    /// <param name="componentId">The id of the component for which the discovery topic should be generated</param>
-    /// <param name="component">The <see cref="HomeAssistantComponent"/> of the device</param>
-    protected string GetCommandTopic<T>(string componentId, HomeAssistantComponent component)
+    /// <param name="actionId">The id of the action for which the command topic should be generated</param>
+    protected string GetCommandTopic<T>(string actionId)
     {
         var typeName = EnsureValidString(typeof(T).Name);
-        var validatedComponentId = EnsureValidString(componentId ?? string.Empty);
+        var validatedActionId = EnsureValidString(actionId ?? string.Empty);
         var computerName = EnsureValidString(Environment.MachineName);
 
-        return $"teams2mqtt/{computerName}-{typeName}/{validatedComponentId}/set";
+        return $"teams2mqtt/{computerName}-{typeName}/{validatedActionId}/set";
     }
 
 

@@ -6,15 +6,15 @@ namespace lafe.Teams2Mqtt.Model.Teams;
 
 public class MeetingState
 {
-    [HomeAssistantSwitch("isMuted", "Is Muted", "isMuted", Icon = "mdi:microphone")]
+    [HomeAssistantSwitch("isMuted", Constants.Commands.ToggleMicrophone, "Is Muted", "isMuted", Icon = "mdi:microphone")]
     [JsonPropertyName("isMuted")]
     public bool IsMuted { get; set; }
 
-    [HomeAssistantSwitch("isCameraOn", "Is Camera On", "isCameraOn", Icon = "mdi:webcam")]
+    [HomeAssistantSwitch("isCameraOn", Constants.Commands.ToggleCamera, "Is Camera On", "isCameraOn", Icon = "mdi:webcam")]
     [JsonPropertyName("isCameraOn")]
     public bool IsCameraOn { get; set; }
 
-    [HomeAssistantSwitch("isHandRaised", "Is Hand Raised", "isHandRaised", Icon = "mdi:hand-back-left")]
+    [HomeAssistantSwitch("isHandRaised", Constants.Commands.RaiseHand, "Is Hand Raised", "isHandRaised", Icon = "mdi:hand-back-left")]
     [JsonPropertyName("isHandRaised")]
     public bool IsHandRaised { get; set; }
 
@@ -22,11 +22,11 @@ public class MeetingState
     [JsonPropertyName("isInMeeting")]
     public bool IsInMeeting { get; set; }
 
-    [HomeAssistantSwitch("isRecordingOn", "Is Recoding On", "isRecordingOn", Icon="mdi:record-rec")]
+    [HomeAssistantBinarySensor("isRecordingOn", "Is Recoding On", "isRecordingOn", Icon="mdi:record-rec")]
     [JsonPropertyName("isRecordingOn")]
     public bool IsRecordingOn { get; set; }
 
-    [HomeAssistantSwitch("isBackgroundBlurred", "Is Background Blurred", "IsBackgroundBlurred", Icon="mdi:blur")]
+    [HomeAssistantSwitch("isBackgroundBlurred", Constants.Commands.BlurBackground, "Is Background Blurred", "IsBackgroundBlurred", Icon="mdi:blur")]
     [JsonPropertyName("isBackgroundBlurred")]
     public bool IsBackgroundBlurred { get; set; }
 }
