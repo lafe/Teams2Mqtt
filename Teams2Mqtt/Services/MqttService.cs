@@ -195,6 +195,8 @@ public class MqttService : IDisposable
             Device = device,
             Name = name.Trim(),
             UniqueId = uniqueId,
+            Icon = sensorInformation.Icon,
+            EnabledByDefault = sensorInformation.EnabledByDefault,
             ValueTemplate = $"{{{{ value_json.{uniqueId} }}}}",
         };
 

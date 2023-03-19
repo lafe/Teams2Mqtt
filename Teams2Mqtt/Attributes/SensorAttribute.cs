@@ -20,6 +20,16 @@ public class SensorAttribute : Attribute
     /// </summary>
     public string? LocalizationKey { get; set; }
 
+    /// <summary>
+    /// Determines if the sensor should be enabled by default. The default value is <c>true</c>.
+    /// </summary>
+    public bool EnabledByDefault { get; set; } = true;
+    
+    /// <summary>
+    /// Specifies the icon of the sensor
+    /// </summary>
+    public string? Icon { get; set; }
+
     public SensorAttribute(string sensorId)
     {
         SensorId = sensorId;

@@ -21,8 +21,14 @@ public class SensorComponentConfiguration : BaseComponentConfiguration
     /// <summary>
     /// The type/class of the sensor to set the icon in the frontend.
     /// </summary>
-    [JsonPropertyName("device_class"), Attributes.Optional, JsonConverter(typeof(JsonStringEnumNameConverter<SensorDeviceClass>))]
+    [JsonPropertyName("device_class"), Optional, JsonConverter(typeof(JsonStringEnumNameConverter<SensorDeviceClass>))]
     public SensorDeviceClass? DeviceClass { get; set; }
+
+    /// <summary>
+    /// Flag which defines if the entity should be enabled when first added.
+    /// </summary>
+    [JsonPropertyName("enabled_by_default"), Optional]
+    public bool EnabledByDefault { get; set; } = true;
 
     /// <summary>
     /// Any icon from MaterialDesignIcons.com. Prefix name with mdi:, ie mdi:home.
