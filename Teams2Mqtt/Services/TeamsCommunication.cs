@@ -106,7 +106,13 @@ public class TeamsCommunication : IDisposable
         var appName = assemblyName?.Name ?? string.Empty;
         var appVersion = assemblyName?.Version?.ToString() ?? string.Empty;
 
-        return $"ws://{Configuration.TeamsWebSocketAddress}:{Configuration.TeamsWebSocketPort}?token={Configuration.TeamsApiKey}&protocol-version=1.0.0&manufacturer=lafe&device={deviceName}&app={appName}&app-version={appVersion}";
+        var url = $"ws://{Configuration.TeamsWebSocketAddress}:{Configuration.TeamsWebSocketPort}?";
+        if (!string.IsNullOrWhiteSpace(Configuration.TeamsApiKey))
+        {
+            url = $"{url}token={Configuration.TeamsApiKey}&";
+        }
+
+        return $"{url}protocol-version=2.0.0&manufacturer=lafe&device={deviceName}&app={appName}&app-version={appVersion}";
     }
 
     public async Task ConnectAsync(CancellationToken cancellationToken = default)
