@@ -1,5 +1,6 @@
 ﻿using lafe.Teams2Mqtt.Model;
 using lafe.Teams2Mqtt.Services;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -63,8 +64,18 @@ namespace lafe.Teams2Mqtt
 
         private static void RegisterServices(IServiceCollection services)
         {
+            services.AddDataProtection();
+
             services.AddSingleton<TeamsCommunication>();
             services.AddSingleton<MqttService>();
+            services.AddSingleton<ITokenManager>(provider =>
+            {
+                var logger = provider.GetService<ILogger<TokenManager>>();
+                var dataProtectionProvider = provider.GetService<IDataProtectionProvider> ();
+                var tokenManager = new TokenManager(logger, dataProtectionProvider);
+                tokenManager.Initialize();
+                return tokenManager;
+            });
 
             services.AddTransient<MqttLoggerFactory>();
         }

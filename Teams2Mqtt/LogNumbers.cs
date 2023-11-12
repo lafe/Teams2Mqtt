@@ -80,6 +80,9 @@ public class LogNumbers
         public const int ToggleMuteAsyncPermissionsInsufficient = BaseId + 37; //1237
         public const int ToggleVideoAsyncPermissionsInsufficient = BaseId + 38; //1238
         public const int ToggleRaisedHandAsyncPermissionsInsufficient = BaseId + 40; //1240
+        public const int RequestMeetingStatusAsyncTokenEmpty = BaseId + 41; //1241
+        public const int WebSocketListenerTokenRefresh = BaseId + 42; //1242
+        public const int WebSocketListenerDisconnecting = BaseId + 43; //1243
     }
     public static class MqttLogger
     {
@@ -134,5 +137,26 @@ public class LogNumbers
         public const int HandleApplicationMessageProcessedError = BaseId + 39; //1439
         public const int HandleApplicationMessageSkipped = BaseId + 40; //1440
         public const int HandleApplicationMessageSkippedError = BaseId + 41; //1441
+    }
+    public static class TokenManager
+    {
+        private const int BaseId = 1500;
+        public const int UpdateToken = BaseId + 1; //1501
+        public const int UpdateTokenUpdatedToken = BaseId + 2; //1502
+        public const int UpdateTokenTokenCacheFile = BaseId + 3; //1503
+        public const int UpdateTokenFolderMissing = BaseId + 4; //1504
+        public const int UpdateTokenCreatedFolder = BaseId + 5; //1505
+        public const int UpdateTokenConvertedToken = BaseId + 6; //1506
+        public const int UpdateTokenEncryptedToken = BaseId + 7; //1507
+        public const int UpdateTokenSuccess = BaseId + 8; //1508
+        public const int UpdateTokenException = BaseId + 9; //1509
+        public const int Initialize = BaseId + 10; //1510
+        public const int InitializeTokenMissing = BaseId + 11; //1511
+        public const int InitializeLoadingCacheFileContent = BaseId + 12; //1512
+        public const int InitializeDecryptingContent = BaseId + 13; //1513
+        public const int InitializeDecodingByteArray = BaseId + 14; //1514
+        public const int InitializeUsingNewToken = BaseId + 15; //1515
+        public const int InitializeSuccess = BaseId + 16; //1516
+        public const int InitializeException = BaseId + 17; //1517
     }
 }

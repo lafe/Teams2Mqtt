@@ -10,8 +10,8 @@ public class MeetingState
     [JsonPropertyName("isMuted")]
     public bool IsMuted { get; set; }
 
-    [HomeAssistantSwitch("isCameraOn", Constants.Commands.ToggleCamera, "Is Camera On", "isCameraOn", Icon = "mdi:webcam")]
-    [JsonPropertyName("isCameraOn")]
+    [HomeAssistantSwitch("isCameraOn", Constants.Commands.ToggleCamera, "Is Video On", "isCameraOn", Icon = "mdi:webcam")]
+    [JsonPropertyName("isVideoOn")]
     public bool IsCameraOn { get; set; }
 
     [HomeAssistantSwitch("isHandRaised", Constants.Commands.RaiseHand, "Is Hand Raised", "isHandRaised", Icon = "mdi:hand-back-left")]
@@ -29,4 +29,12 @@ public class MeetingState
     [HomeAssistantSwitch("isBackgroundBlurred", Constants.Commands.BlurBackground, "Is Background Blurred", "IsBackgroundBlurred", Icon="mdi:blur")]
     [JsonPropertyName("isBackgroundBlurred")]
     public bool IsBackgroundBlurred { get; set; }
+
+    [HomeAssistantSwitch("isSharing", "Is Sharing", "IsSharing", Icon="mdi:share")]
+    [JsonPropertyName("isSharing")]
+    public bool IsSharing { get; set; }
+
+    [HomeAssistantSwitch("hasUnreadMessages", "Has unread messages", "HasUnreadMessages", Icon= "mdi:message-badge")]
+    [JsonPropertyName("hasUnreadMessages")]
+    public bool HasUnreadMessages { get; set; }
 }

@@ -19,6 +19,7 @@ namespace lafe.Teams2Mqtt.Services;
 public class TeamsCommunication : IDisposable
 {
     protected ILogger<TeamsCommunication> Logger { get; }
+    protected ITokenManager TokenManager { get; }
     protected AppConfiguration Configuration { get; }
 
     /// <summary>
@@ -57,9 +58,10 @@ public class TeamsCommunication : IDisposable
     public MeetingUpdateMessage? CurrentTeamsState { get; private set; }
 
 
-    public TeamsCommunication(ILogger<TeamsCommunication> logger, IOptions<AppConfiguration> configuration)
+    public TeamsCommunication(ILogger<TeamsCommunication> logger, IOptions<AppConfiguration> configuration, ITokenManager tokenManager)
     {
         Logger = logger;
+        TokenManager = tokenManager;
         Configuration = configuration.Value;
 
         Logger.LogInformation(LogNumbers.TeamsCommunication.TeamsCommunicationTeamsReconnectionInterval, $"Using a reconnection interval of {Configuration.TeamsReconnectInterval}s.");
@@ -107,9 +109,9 @@ public class TeamsCommunication : IDisposable
         var appVersion = assemblyName?.Version?.ToString() ?? string.Empty;
 
         var url = $"ws://{Configuration.TeamsWebSocketAddress}:{Configuration.TeamsWebSocketPort}?";
-        if (!string.IsNullOrWhiteSpace(Configuration.TeamsApiKey))
+        if (!string.IsNullOrWhiteSpace(TokenManager.Token))
         {
-            url = $"{url}token={Configuration.TeamsApiKey}&";
+            url = $"{url}token={TokenManager.Token}&";
         }
 
         return $"{url}protocol-version=2.0.0&manufacturer=lafe&device={deviceName}&app={appName}&app-version={appVersion}";
@@ -200,6 +202,13 @@ public class TeamsCommunication : IDisposable
                         if (!string.IsNullOrWhiteSpace(meetingUpdate?.ErrorMessage))
                         {
                             Logger.LogError(LogNumbers.TeamsCommunication.WebSocketListenerMeetingUpdateError, $"An error was received by the Web Socket connection from Teams: {meetingUpdate.ErrorMessage}");
+                        } 
+                        else if (!string.IsNullOrWhiteSpace(meetingUpdate?.TokenRefresh))
+                        {
+                            Logger.LogTrace(LogNumbers.TeamsCommunication.WebSocketListenerTokenRefresh, $"Received new token \"{meetingUpdate.TokenRefresh}\"");
+                            await TokenManager.UpdateToken(meetingUpdate?.TokenRefresh ?? string.Empty);
+                            Logger.LogInformation(LogNumbers.TeamsCommunication.WebSocketListenerDisconnecting, $"Disconnecting from Teams, so that a new connection will be established using the Token");
+                            await DisconnectAsync();
                         }
                         else if (meetingUpdate != null)
                         {
@@ -232,7 +241,12 @@ public class TeamsCommunication : IDisposable
     /// </summary>
     public async Task RequestMeetingStatusAsync(CancellationToken cancellationToken = default)
     {
-        var queryMeetingAction = new TeamsAction("query-meeting-state", "query-meeting-state");
+        if (string.IsNullOrWhiteSpace(TokenManager.Token))
+        {
+            Logger.LogTrace(LogNumbers.TeamsCommunication.RequestMeetingStatusAsyncTokenEmpty, $"Cannot request state, because token is not set.");
+            return;
+        }
+        var queryMeetingAction = new TeamsAction("query-state", "query-state");
         await SendRequestAsync(queryMeetingAction, cancellationToken);
     }
 
@@ -262,7 +276,7 @@ public class TeamsCommunication : IDisposable
             await RequestMeetingStatusAsync(cancellationToken);
             return;
         }
-        var queryMeetingAction = new TeamsAction("toggle-video", "toggle-video");
+        var queryMeetingAction = new TeamsAction("toggle-video");
         await SendRequestAsync(queryMeetingAction, cancellationToken);
     }
 
@@ -277,7 +291,7 @@ public class TeamsCommunication : IDisposable
             await RequestMeetingStatusAsync(cancellationToken);
             return;
         }
-        var queryMeetingAction = new TeamsAction("raise-hand", "toggle-hand");
+        var queryMeetingAction = new TeamsAction("toggle-hand");
         await SendRequestAsync(queryMeetingAction, cancellationToken);
     }
 
@@ -292,7 +306,7 @@ public class TeamsCommunication : IDisposable
             await RequestMeetingStatusAsync(cancellationToken);
             return;
         }
-        var queryMeetingAction = new TeamsAction("background-blur", "toggle-background-blur");
+        var queryMeetingAction = new TeamsAction("toggle-background-blur");
         await SendRequestAsync(queryMeetingAction, cancellationToken);
     }
 
@@ -301,7 +315,7 @@ public class TeamsCommunication : IDisposable
     /// </summary>
     public async Task LeaveCallAsync(CancellationToken cancellationToken = default)
     {
-        var queryMeetingAction = new TeamsAction("call", "leave-call");
+        var queryMeetingAction = new TeamsAction("leave-call");
         await SendRequestAsync(queryMeetingAction, cancellationToken);
     }
 
@@ -310,7 +324,7 @@ public class TeamsCommunication : IDisposable
     /// </summary>
     public async Task ReactWithApplauseAsync(CancellationToken cancellationToken = default)
     {
-        var queryMeetingAction = new TeamsAction("call", "react-applause");
+        var queryMeetingAction = new TeamsAction("send-reaction", "applause");
         await SendRequestAsync(queryMeetingAction, cancellationToken);
     }
 
@@ -319,7 +333,7 @@ public class TeamsCommunication : IDisposable
     /// </summary>
     public async Task ReactWithLaughAsync(CancellationToken cancellationToken = default)
     {
-        var queryMeetingAction = new TeamsAction("call", "react-laugh");
+        var queryMeetingAction = new TeamsAction("send-reaction", "laugh");
         await SendRequestAsync(queryMeetingAction, cancellationToken);
     }
 
@@ -328,7 +342,7 @@ public class TeamsCommunication : IDisposable
     /// </summary>
     public async Task ReactWithLikeAsync(CancellationToken cancellationToken = default)
     {
-        var queryMeetingAction = new TeamsAction("call", "react-like");
+        var queryMeetingAction = new TeamsAction("send-reaction", "like");
         await SendRequestAsync(queryMeetingAction, cancellationToken);
     }
 
@@ -337,7 +351,7 @@ public class TeamsCommunication : IDisposable
     /// </summary>
     public async Task ReactWithLoveAsync(CancellationToken cancellationToken = default)
     {
-        var queryMeetingAction = new TeamsAction("call", "react-love");
+        var queryMeetingAction = new TeamsAction("send-reaction", "love");
         await SendRequestAsync(queryMeetingAction, cancellationToken);
     }
 
@@ -346,7 +360,7 @@ public class TeamsCommunication : IDisposable
     /// </summary>
     public async Task ReactWithWowAsync(CancellationToken cancellationToken = default)
     {
-        var queryMeetingAction = new TeamsAction("call", "react-wow");
+        var queryMeetingAction = new TeamsAction("send-reaction", "wow");
         await SendRequestAsync(queryMeetingAction, cancellationToken);
     }
 
@@ -360,7 +374,7 @@ public class TeamsCommunication : IDisposable
         using var scope = Logger.BeginScope($"{nameof(TeamsCommunication)}:{nameof(ConnectAsync)}");
         try
         {
-            Logger.LogTrace(LogNumbers.TeamsCommunication.SendRequestAsync, $"Sending action \"{action.Action}\" of service \"{action.Service}\" to Teams");
+            Logger.LogTrace(LogNumbers.TeamsCommunication.SendRequestAsync, $"Sending action \"{action.Action}\" with action type \"{action.Parameters.ActionType ?? "null"}\" to Teams");
 
             if (WebSocket == null || WebSocket.State != WebSocketState.Open)
             {
@@ -374,11 +388,11 @@ public class TeamsCommunication : IDisposable
             var jsonActionBytes = Encoding.UTF8.GetBytes(jsonAction);
             await WebSocket.SendAsync(jsonActionBytes, WebSocketMessageType.Text, true, cancellationToken);
 
-            Logger.LogTrace(LogNumbers.TeamsCommunication.SendRequestAsyncSuccess, $"Sent action \"{action.Action}\" of service \"{action.Service}\" to Teams");
+            Logger.LogTrace(LogNumbers.TeamsCommunication.SendRequestAsyncSuccess, $"Sent action \"{action.Action}\" with action type \"{action.Parameters.ActionType ?? "null"}\" to Teams");
         }
         catch (Exception ex)
         {
-            Logger.LogError(LogNumbers.TeamsCommunication.SendRequestAsyncException, ex, $"An error occurred while sending action \"{action.Action}\" of service \"{action.Service}\" to Teams: {ex}");
+            Logger.LogError(LogNumbers.TeamsCommunication.SendRequestAsyncException, ex, $"An error occurred while sending action \"{action.Action}\" with action type \"{action.Parameters.ActionType ?? "null"}\" to Teams: {ex}");
         }
 
     }

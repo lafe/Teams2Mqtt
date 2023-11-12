@@ -44,4 +44,8 @@ public class MeetingPermissions
     [HomeAssistantComponent("canStopSharing", "Can Stop Sharing", "canStopSharing", EnabledByDefault = false)]
     [JsonPropertyName("canStopSharing")]
     public bool CanStopSharing { get; set; }
+
+    [HomeAssistantComponent("canPair", "Can Pair", "canPair", EnabledByDefault = false)]
+    [JsonPropertyName("canPair")]
+    public bool CanPair { get; set; }
 }

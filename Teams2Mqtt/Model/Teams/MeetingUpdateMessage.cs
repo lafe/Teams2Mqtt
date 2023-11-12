@@ -13,4 +13,7 @@ public class MeetingUpdateMessage
 
     [JsonPropertyName("errorMsg")]
     public string? ErrorMessage { get; set; }
+    
+    [JsonPropertyName("tokenRefresh")]
+    public string? TokenRefresh { get; set; }
 }

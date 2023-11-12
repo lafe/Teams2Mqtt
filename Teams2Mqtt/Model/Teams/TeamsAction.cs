@@ -4,23 +4,46 @@ namespace lafe.Teams2Mqtt.Model.Teams;
 
 public class TeamsAction
 {
-    [JsonPropertyName("apiVersion")]
-    public string ApiVersion { get; set; } = "1.0.0";
-    [JsonPropertyName("service")]
-    public string Service { get; set; }
     [JsonPropertyName("action")]
     public string Action { get; set; }
 
-    [JsonPropertyName("manufacturer")]
-    public string Manufacturer => "lafe";
-    [JsonPropertyName("device")]
-    public string Device => Environment.MachineName ?? string.Empty;
-    [JsonPropertyName("timestamp")]
-    public long Timestamp => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+    [JsonPropertyName("parameters")] 
+    public TeamsActionParameters Parameters { get; set; } = new TeamsActionParameters();
 
-    public TeamsAction(string service, string action)
+    protected static object RequestIdLock = new object();
+    protected static int InternalRequestId = 0;
+    [JsonPropertyName("requestId")]
+    public int RequestId => InternalRequestId;
+
+    public TeamsAction(string action)
     {
-        Service = service;
         Action = action;
+        lock (RequestIdLock)
+        {
+            InternalRequestId++;
+        }
     }
+
+    public TeamsAction(string action, string actionType)
+    : this(action)
+    {
+        Parameters.ActionType = actionType;
+    }
+}
+
+public class TeamsActionParameters
+{
+
+    [JsonPropertyName("type")]
+    public string? ActionType { get; set; }
+
+    public TeamsActionParameters()
+    {
+    }
+
+    public TeamsActionParameters(string actionType)
+    {
+        ActionType = actionType;
+    }
+
 }
