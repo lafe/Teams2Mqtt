@@ -7,6 +7,10 @@ public class MqttConfiguration
     /// </summary>
     public bool MqttLoggingEnabled { get; set; } = false;
     /// <summary>
+    /// URL to the Websocket MQTT Host, disables the <see cref="Server"/> and the <see cref="Port"/> Property
+    /// </summary>
+    public Uri? WebsocketUri { get; set; }
+    /// <summary>
     /// The MQTT broker to connect to
     /// </summary>
     public string? Server { get; set; }

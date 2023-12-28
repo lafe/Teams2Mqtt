@@ -70,19 +70,30 @@ public class MqttService : IDisposable
         var mqttLogger = LoggerFactory.CreateLogger();
         MqttClient = mqttFactory.CreateManagedMqttClient(mqttLogger);
 
-        if (string.IsNullOrWhiteSpace(MqttConfiguration?.Server))
+        var availabilityTopic = AvailabilityTopic;
+
+        Logger.LogInformation(LogNumbers.MqttService.StartAsyncConnectionConfiguration, $"Creating connection with MQTT broker {MqttConfiguration.Server}{(MqttConfiguration.Port != null ? $":{MqttConfiguration.Port}" : "")}");
+        // Create options
+        var mqttClientOptionsBuilder = new MqttClientOptionsBuilder();
+
+        // Websocket
+        if (MqttConfiguration.WebsocketUri != null)
+        {
+            Logger.LogInformation(LogNumbers.MqttService.UseWebsocketMessage, "Using Mqtt over Websocket {WebsocketUri}", MqttConfiguration.WebsocketUri);
+            mqttClientOptionsBuilder.WithWebSocketServer(MqttConfiguration.WebsocketUri.ToString());
+        }
+        // TCP
+        else if (!string.IsNullOrWhiteSpace(MqttConfiguration?.Server))
+        {
+            mqttClientOptionsBuilder.WithTcpServer(MqttConfiguration.Server, MqttConfiguration.Port);
+        }
+        // Fallback
+        else
         {
             Logger.LogWarning(LogNumbers.MqttService.StartAsyncMqttServerNotConfigured, $"MQTT broker is not configured. Skipping initialization of MQTT client.");
             Enabled = false;
             return;
         }
-
-        var availabilityTopic = AvailabilityTopic;
-
-        Logger.LogInformation(LogNumbers.MqttService.StartAsyncConnectionConfiguration, $"Creating connection with MQTT broker {MqttConfiguration.Server}{(MqttConfiguration.Port != null ? $":{MqttConfiguration.Port}" : "")}");
-        // Create options
-        var mqttClientOptionsBuilder = new MqttClientOptionsBuilder()
-            .WithTcpServer(MqttConfiguration.Server, MqttConfiguration.Port);
 
         // Add credentials (if given)
         if (!string.IsNullOrWhiteSpace(MqttConfiguration.UserName) && !string.IsNullOrWhiteSpace(MqttConfiguration.Password))
