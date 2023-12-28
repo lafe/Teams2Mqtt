@@ -137,6 +137,7 @@ public class LogNumbers
         public const int HandleApplicationMessageProcessedError = BaseId + 39; //1439
         public const int HandleApplicationMessageSkipped = BaseId + 40; //1440
         public const int HandleApplicationMessageSkippedError = BaseId + 41; //1441
+        public const int UseWebsocketMessage = BaseId + 42; //1442
     }
     public static class TokenManager
     {
